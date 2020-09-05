@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 (async () => {
 	try {
-		const browser = await puppeteer.launch();
+		const browser = await puppeteer.launch({ headless: true, args: ['--incognito'] });
 		const page = await browser.newPage();
 		const navigationPromise = page.waitForNavigation();
 		await page.goto('http://localhost:8000/');
