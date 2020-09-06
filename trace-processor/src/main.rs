@@ -44,6 +44,13 @@ fn main() {
 }
 
 fn calc_event_trace(trace: Trace) {
+    fn is_render_event(ev: &str) -> bool {
+        ev == "Layout"
+            || ev == "UpdateLayoutTree"
+            || ev == "UpdateLayerTree"
+            || ev == "Paint"
+            || ev == "CompositeLayers"
+    }
     let mut duration: i64 = 0;
     let entries: Vec<TraceData> = trace
         .trace_events
@@ -58,11 +65,7 @@ fn calc_event_trace(trace: Trace) {
                 }
             }
             if let Some(n) = item.name.clone() {
-                if n == "Layout"
-                    || n == "UpdateLayoutTree"
-                    || n == "UpdateLayerTree"
-                    || n == "Paint"
-                {
+                if is_render_event(&n) {
                     duration += item.dur.unwrap();
                     return true;
                 }
@@ -93,11 +96,7 @@ fn calc_event_trace(trace: Trace) {
         .iter()
         .filter(|item| {
             if let Some(n) = item.name.clone() {
-                if n == "Layout"
-                    || n == "UpdateLayoutTree"
-                    || n == "UpdateLayerTree"
-                    || n == "Paint"
-                {
+                if is_render_event(&n) {
                     if item.ts.unwrap() >= click_start_time && item.ts.unwrap() <= click_time_end {
                         return true;
                     }
@@ -115,11 +114,7 @@ fn calc_event_trace(trace: Trace) {
         .iter()
         .filter(|item| {
             if let Some(n) = item.name.clone() {
-                if n == "Layout"
-                    || n == "UpdateLayoutTree"
-                    || n == "UpdateLayerTree"
-                    || n == "Paint"
-                {
+                if is_render_event(&n) {
                     if item.ts.unwrap() > click_time_end {
                         return true;
                     }
@@ -134,18 +129,18 @@ fn calc_event_trace(trace: Trace) {
         .fold(0, |acc, x| acc + x.dur.unwrap());
 
     println!(
-        "Total duration is {:?}ms. 
-        Click duration is {:?}ms.
-        Click time start is {:?}ms, 
-        Click time end is {:?}ms,
-        Painting during click is {:?} micros ,
-        Painting after click is {:?} ms ,
+        "Total duration is {:?} micros. 
+        Click duration is {:?} micros.
+        Click time start is {:?} micros, 
+        Click time end is {:?} micros,
+        Rendering during click is {:?} micros,
+        Rendering after click is {:?} micros,
           ",
-        duration / 1000,
-        click.dur.unwrap() / 1000,
+        duration,
+        click.dur.unwrap(),
         click.ts.unwrap(),
         click_time_end,
         dur_of_entries_during_click,
-        dur_of_entries_after_click / 1000
+        dur_of_entries_after_click
     );
 }
