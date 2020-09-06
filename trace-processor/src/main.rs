@@ -38,8 +38,14 @@ fn main() {
     let json_file = File::open(json_file_path).expect("file not found");
     let start = Instant::now();
     let deserialized: Trace = serde_json::from_reader(json_file).expect("error while reading json");
+    calc_event_trace(deserialized);
+    let elapsed = start.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
+
+fn calc_event_trace(trace: Trace) {
     let mut duration: i64 = 0;
-    let click_entry: Vec<&TraceData> = deserialized
+    let entries: Vec<TraceData> = trace
         .trace_events
         .iter()
         .filter(|item| {
@@ -63,10 +69,83 @@ fn main() {
             }
             return false;
         })
+        .map(|item| item.to_owned())
         .collect();
 
-    println!("{:?} {:?}ms", click_entry, duration / 1000);
+    let click = entries
+        .iter()
+        .filter(|item| {
+            if let Some(x) = item.args.as_ref().unwrap().data.clone() {
+                if let Some(t) = x.the_type {
+                    if t == "click" {
+                        return true;
+                    }
+                }
+            }
 
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+            return false;
+        })
+        .collect::<Vec<&TraceData>>()[0];
+    let click_start_time = click.ts.unwrap();
+    let click_time_end = click_start_time + click.dur.unwrap();
+
+    let entries_during_click: Vec<&TraceData> = entries
+        .iter()
+        .filter(|item| {
+            if let Some(n) = item.name.clone() {
+                if n == "Layout"
+                    || n == "UpdateLayoutTree"
+                    || n == "UpdateLayerTree"
+                    || n == "Paint"
+                {
+                    if item.ts.unwrap() >= click_start_time && item.ts.unwrap() <= click_time_end {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        })
+        .collect();
+
+    let dur_of_entries_during_click = entries_during_click
+        .iter()
+        .fold(0, |acc, x| acc + x.dur.unwrap());
+
+    let entries_after_click: Vec<&TraceData> = entries
+        .iter()
+        .filter(|item| {
+            if let Some(n) = item.name.clone() {
+                if n == "Layout"
+                    || n == "UpdateLayoutTree"
+                    || n == "UpdateLayerTree"
+                    || n == "Paint"
+                {
+                    if item.ts.unwrap() > click_time_end {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        })
+        .collect();
+
+    let dur_of_entries_after_click = entries_after_click
+        .iter()
+        .fold(0, |acc, x| acc + x.dur.unwrap());
+
+    println!(
+        "Total duration is {:?}ms. 
+        Click duration is {:?}ms.
+        Click time start is {:?}ms, 
+        Click time end is {:?}ms,
+        Painting during click is {:?} micros ,
+        Painting after click is {:?} ms ,
+          ",
+        duration / 1000,
+        click.dur.unwrap() / 1000,
+        click.ts.unwrap(),
+        click_time_end,
+        dur_of_entries_during_click,
+        dur_of_entries_after_click / 1000
+    );
 }
