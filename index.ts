@@ -1,14 +1,18 @@
 const puppeteer = require('puppeteer');
 
 (async () => {
-	await measure_event('button#create1000', 'trace/k/trace.json');
-	await measure_event('button#create10000', 'trace/ten_k/trace.json');
+	for (let i = 0; i <= 11; i++) {
+		await measure_event('button#create1000', `trace/k/trace${i}.json`);
+	}
+	for (let i = 0; i <= 11; i++) {
+		await measure_event('button#create10000', `trace/ten_k/trace${i}.json`);
+	}
 })();
 
 async function measure_event(selector: string, path: string): Promise<void> {
 	try {
 		const browser = await puppeteer.launch({
-			headless: false,
+			headless: true,
 			args: [
 				'--incognito',
 				'--no-sandbox', // meh but better resource comsuption
