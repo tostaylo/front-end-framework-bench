@@ -1,6 +1,11 @@
 const puppeteer = require('puppeteer');
 
 (async () => {
+	await measure_event('button#create1000', 'trace/k/trace.json');
+	await measure_event('button#create10000', 'trace/ten_k/trace.json');
+})();
+
+async function measure_event(selector: string, path: string): Promise<void> {
 	try {
 		const browser = await puppeteer.launch({
 			headless: false,
@@ -12,15 +17,15 @@ const puppeteer = require('puppeteer');
 				'--no-zygote', // wtf does that mean ?
 			],
 		});
+
 		const page = await browser.newPage();
 		const navigationPromise = page.waitForNavigation();
 		await page.goto('http://localhost:8000/');
 		await page.setViewport({ width: 1440, height: 714 });
 		await navigationPromise;
-		await page.waitFor(2000);
-		const selector = 'button#create1000';
+		await page.waitFor(1000);
 		await page.waitForSelector(selector);
-		await page.tracing.start({ path: 'trace.json', screenshots: true });
+		await page.tracing.start({ path, screenshots: true });
 		await page.click(selector);
 		await page.tracing.stop();
 
@@ -32,4 +37,4 @@ const puppeteer = require('puppeteer');
 		console.warn(error);
 		process.abort;
 	}
-})();
+}

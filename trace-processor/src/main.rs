@@ -34,13 +34,19 @@ struct Trace {
 }
 
 fn main() {
-    let json_file_path = Path::new("../trace.json");
-    let json_file = File::open(json_file_path).expect("file not found");
     let start = Instant::now();
-    let deserialized: Trace = serde_json::from_reader(json_file).expect("error while reading json");
-    calc_event_trace(deserialized);
+    calc_event_trace(get_trace_file("../trace/k/trace.json"));
+    calc_event_trace(get_trace_file("../trace/ten_k/trace.json"));
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
+}
+
+fn get_trace_file(path: &str) -> Trace {
+    println!("Path: {}", path);
+    let json_file_path = Path::new(path);
+    let json_file = File::open(json_file_path).expect("file not found");
+    let deserialized: Trace = serde_json::from_reader(json_file).expect("error while reading json");
+    deserialized
 }
 
 fn calc_event_trace(trace: Trace) {
