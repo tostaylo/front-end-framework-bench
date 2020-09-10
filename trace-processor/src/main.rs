@@ -8,6 +8,12 @@ use std::path::Path;
 use std::time::Instant;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+struct TimingResult {
+    timing_type: String,
+    timing_framework: String,
+    final_timing: TraceFileTimings,
+}
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TraceFileTimings {
     total_dur: i64,
     click_dur: i64,
@@ -44,30 +50,49 @@ struct Trace {
 
 fn main() {
     let start = Instant::now();
+    let directories = vec!["../trace/k/".to_owned(), "../trace/ten_k/".to_owned()];
+    let trace_timing_results: Vec<TimingResult> = directories
+        .iter()
+        .map(|directory| {
+            // Handle unwrapping no data here gracefully.
+            let mut paths = fs::read_dir(directory).unwrap();
+            let path_ = paths.nth(1).unwrap().expect("msg");
+            let path__ = path_.path();
+            let path___ = path__.to_str().unwrap();
+            let path_vec = path___.split(".").collect::<Vec<&str>>();
+            let current_framework = path_vec[path_vec.len() - 2].to_owned();
+            let current_timing_type = path_vec[path_vec.len() - 3].to_owned();
 
-    let mut k_trace_timings: Vec<TraceFileTimings> = vec![];
-    let k_paths = fs::read_dir("../trace/k/").unwrap();
+            let timings: Vec<TraceFileTimings> = paths
+                .map(|path| {
+                    let p = path.unwrap();
+                    let path = p.path();
 
-    let mut ten_k_trace_timings: Vec<TraceFileTimings> = vec![];
-    let ten_k_paths = fs::read_dir("../trace/ten_k/").unwrap();
+                    println!("Name: {}", path.display());
+                    let t = calc_event_trace(get_trace_file(path.to_str().unwrap()));
+                    // fs::remove_file(path.to_str().unwrap()).expect("Could not remove file");
+                    t
+                })
+                .collect();
 
-    for path in k_paths {
-        let p = path.unwrap();
-        println!("Name: {}", p.path().display());
-        k_trace_timings.push(calc_event_trace(get_trace_file(p.path().to_str().unwrap())));
-        // fs::remove_file(p.path().to_str().unwrap()).expect("Could not remove file")
-    }
+            get_trace_timing_result(timings, current_timing_type, current_framework)
+        })
+        .collect();
 
-    for path in ten_k_paths {
-        let p = path.unwrap();
-        println!("Name: {}", p.path().display());
-        ten_k_trace_timings.push(calc_event_trace(get_trace_file(p.path().to_str().unwrap())));
-        // fs::remove_file(p.path().to_str().unwrap()).expect("Could not remove file")
-    }
+    println!("k: {:?}", trace_timing_results);
+    // Here we write to file or db?
+    let elapsed = start.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
 
-    k_trace_timings.sort_by(|a, b| a.total_dur.cmp(&b.total_dur));
-    k_trace_timings.truncate(10);
-    let k_trace_timing_total = k_trace_timings.iter().fold(
+fn get_trace_timing_result(
+    mut timings: Vec<TraceFileTimings>,
+    timing_type: String,
+    timing_framework: String,
+) -> TimingResult {
+    timings.sort_by(|a, b| a.total_dur.cmp(&b.total_dur));
+    timings.truncate(10);
+    let k_trace_timing_total = timings.iter().fold(
         TraceFileTimings {
             total_dur: 0,
             click_dur: 0,
@@ -82,18 +107,18 @@ fn main() {
         },
     );
 
-    let k_trace_timing_avg = TraceFileTimings {
+    let final_timing = TraceFileTimings {
         total_dur: k_trace_timing_total.total_dur / 10,
         click_dur: k_trace_timing_total.click_dur / 10,
         render_during_click: k_trace_timing_total.render_during_click / 10,
         render_after_click: k_trace_timing_total.render_after_click / 10,
     };
 
-    println!("k: {:?}", k_trace_timing_avg);
-    // println!("ten_k: {:?}", ten_k_trace_timings);
-
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    TimingResult {
+        timing_type,
+        timing_framework,
+        final_timing,
+    }
 }
 
 fn get_trace_file(path: &str) -> Trace {

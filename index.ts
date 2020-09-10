@@ -1,11 +1,17 @@
 const puppeteer = require('puppeteer');
 
+// maybe make this an npm package so when I write a script to start server it also runs all the tests.
+// takes a config of {selector, framework, test_name}
+// maybe no need to create different directories if the type of test is in the filename.
+
+// alternatively I can just continue to run this from the root directory.
+
 (async () => {
 	for (let i = 0; i <= 11; i++) {
-		await measure_event('button#create1000', `trace/k/trace${i}.json`);
+		await measure_event('button#create1000', `trace/k/trace${i}.k.rust-fel.json`);
 	}
 	for (let i = 0; i <= 11; i++) {
-		await measure_event('button#create10000', `trace/ten_k/trace${i}.json`);
+		await measure_event('button#create10000', `trace/ten_k/trace${i}.10k.react.json`);
 	}
 })();
 
@@ -15,7 +21,7 @@ async function measure_event(selector: string, path: string): Promise<void> {
 			headless: true,
 			args: [
 				'--incognito',
-				'--no-sandbox', // meh but better resource comsuption
+				'--no-sandbox', // meh but better resource consumption
 				'--disable-setuid-sandbox',
 				'--disable-dev-shm-usage', // ???
 				'--no-zygote', // wtf does that mean ?
