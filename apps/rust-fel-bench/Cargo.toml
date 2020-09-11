@@ -1,0 +1,34 @@
+[package]
+name = "rust-fel-bench"
+version = "0.1.0"
+authors = ["Torre Taylor"]
+edition = "2018"
+repository = "https://github.com/tostaylo/rust-fel-bench"
+description = "An example website utilizing rust-fel 'https://github.com/tostaylo/rust-fel'"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.67"
+console_error_panic_hook = "0.1.6"
+rust-fel = "0.1.1"
+wee_alloc = "0.4.5"
+
+[dependencies.web-sys]
+version = "0.3.44"
+features = [
+  'Document', 
+  'Element',
+  'HtmlElement',
+  'HtmlInputElement',
+  'Node',
+  'NodeList',
+  'Window',
+  'Text',
+]
+
+[profile.release]
+lto = true
+opt-level = 3

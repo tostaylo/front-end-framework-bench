@@ -1,17 +1,36 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 
 // maybe make this an npm package so when I write a script to start server it also runs all the tests.
 // takes a config of {selector, framework, test_name}
 // maybe no need to create different directories if the type of test is in the filename.
 
 // alternatively I can just continue to run this from the root directory.
+// doesn't make sense to make it a package really I don't think
 
 (async () => {
+	const html = `<html>
+	<head>
+		<title>rust-fel-bench</title>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+		<link rel="stylesheet" href="./main.css" />
+	</head>
+	<body>
+		<div id="root"></div>
+		<script src="./apps/rust-fel-bench/index.js"type="module">
+		</script>
+	</body>
+</html>
+`;
+	fs.writeFile('index.html', html, function (err: any) {
+		if (err) return console.log(err);
+	});
+
 	for (let i = 0; i <= 11; i++) {
-		await measure_event('button#create1000', `trace/k/trace${i}.k.rust-fel.json`);
+		await measure_event('button#create1000', `traces/k/trace${i}.k.rust-fel.json`);
 	}
 	for (let i = 0; i <= 11; i++) {
-		await measure_event('button#create10000', `trace/ten_k/trace${i}.10k.react.json`);
+		await measure_event('button#create10000', `traces/ten_k/trace${i}.10k.react.json`);
 	}
 })();
 

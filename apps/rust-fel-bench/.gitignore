@@ -1,0 +1,9 @@
+# Generated files
+/target/
+node_modules
+cypress/integration/examples/*
+cypress/screenshots/*
+cypress/videos/*
+
+
+

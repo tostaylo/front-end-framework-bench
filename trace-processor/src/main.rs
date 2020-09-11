@@ -50,28 +50,31 @@ struct Trace {
 
 fn main() {
     let start = Instant::now();
-    let directories = vec!["../trace/k/".to_owned(), "../trace/ten_k/".to_owned()];
+    let directories = vec!["../traces/k/".to_owned(), "../traces/ten_k/".to_owned()];
     let trace_timing_results: Vec<TimingResult> = directories
         .iter()
         .map(|directory| {
             // Handle unwrapping no data here gracefully.
+            // if path.nth(1)
             let mut paths = fs::read_dir(directory).unwrap();
-            let path_ = paths.nth(1).unwrap().expect("msg");
-            let path__ = path_.path();
-            let path___ = path__.to_str().unwrap();
-            let path_vec = path___.split(".").collect::<Vec<&str>>();
+            let path_entry = paths.nth(1).unwrap().expect("msg");
+            let path_buf = path_entry.path();
+            let path_str = path_buf.to_str().unwrap();
+            let path_vec = path_str.split(".").collect::<Vec<&str>>();
+            //if path_vec len greater than 4 or use nth instead for OK
             let current_framework = path_vec[path_vec.len() - 2].to_owned();
             let current_timing_type = path_vec[path_vec.len() - 3].to_owned();
 
             let timings: Vec<TraceFileTimings> = paths
                 .map(|path| {
-                    let p = path.unwrap();
-                    let path = p.path();
+                    let path_entry = path.unwrap();
+                    let path_buf = path_entry.path();
 
-                    println!("Name: {}", path.display());
-                    let t = calc_event_trace(get_trace_file(path.to_str().unwrap()));
+                    println!("Name: {}", path_buf.display());
+                    let trace_file_timings =
+                        calc_event_trace(get_trace_file(path_buf.to_str().unwrap()));
                     // fs::remove_file(path.to_str().unwrap()).expect("Could not remove file");
-                    t
+                    trace_file_timings
                 })
                 .collect();
 
