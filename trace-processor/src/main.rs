@@ -59,7 +59,7 @@ fn main() {
             let framework = framework_directory_buf
                 .to_str()
                 .unwrap()
-                .split("/")
+                .split('/')
                 .collect::<Vec<&str>>()
                 .pop()
                 .unwrap();
@@ -71,12 +71,11 @@ fn main() {
                     let metric = metric_dir_buf
                         .to_str()
                         .unwrap()
-                        .split("/")
+                        .split('/')
                         .collect::<Vec<&str>>()
                         .pop()
                         .unwrap();
                     let file_paths = fs::read_dir(metric_dir_buf.clone()).unwrap();
-                    println!("Name: {}", metric);
 
                     let trace_file_timings_per_file: Vec<TraceFileTimings> = file_paths
                         .map(|path| {
@@ -172,7 +171,7 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
                     return true;
                 }
             }
-            return false;
+            false
         })
         .map(|item| item.to_owned())
         .collect();
@@ -188,7 +187,7 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
                 }
             }
 
-            return false;
+            false
         })
         .collect::<Vec<&TraceData>>()[0];
     let click_start_time = click.ts.unwrap();
@@ -198,13 +197,14 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         .iter()
         .filter(|item| {
             if let Some(n) = item.name.clone() {
-                if is_render_event(&n) {
-                    if item.ts.unwrap() >= click_start_time && item.ts.unwrap() <= click_time_end {
-                        return true;
-                    }
+                if is_render_event(&n)
+                    && item.ts.unwrap() >= click_start_time
+                    && item.ts.unwrap() <= click_time_end
+                {
+                    return true;
                 }
             }
-            return false;
+            false
         })
         .collect();
 
@@ -216,13 +216,11 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         .iter()
         .filter(|item| {
             if let Some(n) = item.name.clone() {
-                if is_render_event(&n) {
-                    if item.ts.unwrap() > click_time_end {
-                        return true;
-                    }
+                if is_render_event(&n) && item.ts.unwrap() > click_time_end {
+                    return true;
                 }
             }
-            return false;
+            false
         })
         .collect();
 
