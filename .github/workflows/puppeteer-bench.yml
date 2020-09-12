@@ -44,7 +44,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check --manifest-path trace-processor/Cargo.toml
+          args: --manifest-path trace-processor/Cargo.toml --all -- --check
 
   clippy:
     name: Clippy
@@ -60,7 +60,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings --manifest-path trace-processor/Cargo.toml
+          args: --manifest-path trace-processor/Cargo.toml -- -D warnings
 
   # cypress:
   #   name: End-to-end tests

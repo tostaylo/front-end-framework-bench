@@ -24,7 +24,7 @@ const metrics = [
 	</head>
 	<body>
 		<div id="root"></div>
-		<script src=${config.src} type="module">
+		<script src="${config.src}" type="module">
 		</script>
 	</body>
 </html>
