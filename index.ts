@@ -1,22 +1,53 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-const app_configs = [
-	{ dirName: 'rust-fel', framework: 'rust-fel', src: './apps/rust-fel-bench/index.js' },
-	{ dirName: 'es-next', framework: 'es-next', src: './apps/es-next-bench/index.js' },
-];
-
-const metrics = [
-	{ fileName: 'k', dirName: 'k', selector: 'button#create1000' },
-	{ fileName: '10k', dirName: 'ten_k', selector: 'button#create10000' },
-];
+type Config = { dirName: string; framework: string; src: string };
+type Metric = { fileName: string; dirName: string; selector: string; selector2?: string };
 
 (async () => {
-	for (const config of app_configs) {
-		fs.rmdirSync(`traces/${config.dirName}`, { recursive: true });
-		fs.mkdirSync(`traces/${config.dirName}`, { recursive: true });
+	const app_configs = [
+		{ dirName: 'rust-fel', framework: 'rust-fel', src: './apps/rust-fel-bench/index.js' },
+		{ dirName: 'es-next', framework: 'es-next', src: './apps/es-next-bench/index.js' },
+	];
 
-		const html = `<html>
+	const metrics = [
+		{ fileName: 'k', dirName: 'k', selector: 'button#create1000' },
+		{ fileName: '10k', dirName: 'ten-k', selector: 'button#create10000' },
+		{ fileName: 'clearK', dirName: 'clear-k', selector: 'button#create1000', selector2: 'button#clear' },
+		{ fileName: 'clear10K', dirName: 'clear-ten-k', selector: 'button#create10000', selector2: 'button#clear' },
+	];
+	for (const config of app_configs) {
+		await manageDirsHtmlTraces(config, 2, metrics);
+	}
+})();
+
+async function manageDirsHtmlTraces(config: Config, iterations: number, metrics: Metric[]) {
+	manageDirs(config);
+	createHTML(config);
+	await runTraces(config, metrics, iterations);
+}
+
+async function runTraces(config: Config, metrics: Metric[], iterations: number) {
+	for (const metric of metrics) {
+		fs.mkdirSync(`traces/${config.dirName}/${metric.dirName}`, { recursive: true });
+
+		for (let i = 1; i <= iterations; i++) {
+			await measureEvent(
+				metric.selector,
+				`traces/${config.dirName}/${metric.dirName}/trace${i}.${metric.fileName}.${config.framework}.json`,
+				metric.selector2
+			);
+		}
+	}
+}
+
+function manageDirs(config: Config) {
+	fs.rmdirSync(`traces/${config.dirName}`, { recursive: true });
+	fs.mkdirSync(`traces/${config.dirName}`, { recursive: true });
+}
+
+function createHTML(config: Config) {
+	const html = `<html>
 	<head>
 		<title>${config.framework}</title>
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
@@ -30,24 +61,12 @@ const metrics = [
 	</body>
 </html>
 `;
-		fs.writeFile('index.html', html, function (err: any) {
-			if (err) return console.log(err);
-		});
+	fs.writeFile('index.html', html, function (err: any) {
+		if (err) return console.log(err);
+	});
+}
 
-		for (const metric of metrics) {
-			fs.mkdirSync(`traces/${config.dirName}/${metric.dirName}`, { recursive: true });
-
-			for (let i = 0; i <= 11; i++) {
-				await measure_event(
-					metric.selector,
-					`traces/${config.dirName}/${metric.dirName}/trace${i}.${metric.fileName}.${config.framework}.json`
-				);
-			}
-		}
-	}
-})();
-
-async function measure_event(selector: string, path: string): Promise<void> {
+async function measureEvent(selector: string, path: string, selector2: string = ''): Promise<void> {
 	try {
 		const browser = await puppeteer.launch({
 			headless: true,
@@ -69,10 +88,16 @@ async function measure_event(selector: string, path: string): Promise<void> {
 		await page.waitForSelector(selector);
 		await page.tracing.start({ path, screenshots: true });
 		await page.click(selector);
+
+		if (selector2) {
+			await page.waitFor(2000);
+			await page.click(selector2);
+		}
+
 		await page.tracing.stop();
 
 		const metrics = await page.metrics();
-		console.info(metrics);
+		console.info(selector, '  ', path, '  ', selector2, '  ', metrics);
 
 		await browser.close();
 	} catch (error) {

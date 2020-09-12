@@ -130,11 +130,13 @@ fn get_trace_timing_result(
         },
     );
 
+    let divisor = timings.len() as i64;
+
     let final_timing = TraceFileTimings {
-        total_dur: k_trace_timing_total.total_dur / 10,
-        click_dur: k_trace_timing_total.click_dur / 10,
-        render_during_click: k_trace_timing_total.render_during_click / 10,
-        render_after_click: k_trace_timing_total.render_after_click / 10,
+        total_dur: k_trace_timing_total.total_dur / divisor,
+        click_dur: k_trace_timing_total.click_dur / divisor,
+        render_during_click: k_trace_timing_total.render_during_click / divisor,
+        render_after_click: k_trace_timing_total.render_after_click / divisor,
     };
 
     TimingResult {
@@ -197,7 +199,10 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         false
     });
 
-    let click = match click_iter.nth(0) {
+    // Right now we always want the last click event
+    // because of creating or creating and then clearing.
+
+    let click = match click_iter.next_back() {
         Some(c) => c,
         None => panic!("no click found "),
     };
@@ -269,7 +274,7 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
 
 #[cfg(test)]
 #[test]
-pub fn is_correct() {
+pub fn calc_event_trace_is_correct() {
     //  ev == "Layout"
     //             || ev == "UpdateLayoutTree"
     //             || ev == "UpdateLayerTree"
@@ -282,7 +287,7 @@ pub fn is_correct() {
     });
     let click_data = TraceData {
         cat: None,
-        args,
+        args: args.clone(),
         name: Some("Event".to_owned()),
         ph: None,
         pid: None,
@@ -337,15 +342,46 @@ pub fn is_correct() {
 
     let trace = Trace {
         trace_events: vec![
-            click_data,
-            layout_data_during,
-            paint_data_after,
-            layer_data_during,
-            layout_data_after,
+            click_data.clone(),
+            layout_data_during.clone(),
+            paint_data_after.clone(),
+            layer_data_during.clone(),
+            layout_data_after.clone(),
         ],
     };
-    let calc = calc_event_trace(trace);
-    assert_eq!(calc.total_dur, 50);
+    let calc = calc_event_trace(trace.clone());
+    assert_eq!(calc.total_dur, 150);
+    assert_eq!(calc.click_dur, 50);
+    assert_eq!(calc.render_during_click, 50);
+    assert_eq!(calc.render_after_click, 100);
+
+    let more_click_data = TraceData {
+        cat: None,
+        args: args.clone(),
+        name: Some("Event".to_owned()),
+        ph: None,
+        pid: None,
+        tid: None,
+        ts: Some(175),
+        dur: Some(75),
+    };
+
+    let trace = Trace {
+        trace_events: vec![
+            click_data.clone(),
+            layout_data_during.clone(),
+            paint_data_after.clone(),
+            layer_data_during.clone(),
+            layout_data_after.clone(),
+            more_click_data.clone(),
+        ],
+    };
+
+    let calc = calc_event_trace(trace.clone());
+    assert_eq!(calc.total_dur, 75);
+    assert_eq!(calc.click_dur, 75);
+    assert_eq!(calc.render_during_click, 0);
+    assert_eq!(calc.render_after_click, 0);
     // Maybe all I really need to do is calulate the time from start click start to last composite layer?
     // Monitor other frameworks to try it out. Maybe other frameworks are doing alot of work in the browser if
     // There is multiple browser events layered on top of each other?
