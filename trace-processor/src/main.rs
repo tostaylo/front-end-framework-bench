@@ -159,10 +159,12 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         .trace_events
         .iter()
         .filter(|item| {
-            if let Some(x) = item.args.as_ref().unwrap().data.clone() {
-                if let Some(t) = x.the_type {
-                    if t == "click" {
-                        return true;
+            if let Some(x) = item.args.clone() {
+                if let Some(y) = x.data {
+                    if let Some(t) = y.the_type {
+                        if t == "click" {
+                            return true;
+                        }
                     }
                 }
             }
@@ -176,20 +178,25 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         .map(|item| item.to_owned())
         .collect();
 
-    let click = entries
-        .iter()
-        .filter(|item| {
-            if let Some(x) = item.args.as_ref().unwrap().data.clone() {
-                if let Some(t) = x.the_type {
+    let mut click_iter = entries.iter().filter(|item| {
+        if let Some(x) = item.args.clone() {
+            if let Some(y) = x.data {
+                if let Some(t) = y.the_type {
                     if t == "click" {
                         return true;
                     }
                 }
             }
+        }
 
-            false
-        })
-        .collect::<Vec<&TraceData>>()[0];
+        false
+    });
+
+    let click = match click_iter.nth(0) {
+        Some(c) => c,
+        None => panic!("no click found "),
+    };
+
     let click_start_time = click.ts.unwrap();
     let click_time_end = click_start_time + click.dur.unwrap();
 
@@ -229,7 +236,7 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         .fold(0, |acc, x| acc + x.dur.unwrap());
 
     let click_dur = click.dur.unwrap();
-    let total_dur = click_dur + render_during_click + render_after_click;
+    let total_dur = click_dur + render_after_click;
 
     println!(
         "Total duration is {:?} micros.
@@ -253,4 +260,89 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         render_during_click,
         render_after_click,
     }
+}
+
+#[cfg(test)]
+#[test]
+pub fn is_correct() {
+    //  ev == "Layout"
+    //             || ev == "UpdateLayoutTree"
+    //             || ev == "UpdateLayerTree"
+    //             || ev == "Paint"
+    //             || ev == "CompositeLayers"
+    let args = Some(TraceArgs {
+        data: Some(TraceDataObj {
+            the_type: Some("click".to_owned()),
+        }),
+    });
+    let click_data = TraceData {
+        cat: None,
+        args,
+        name: Some("Event".to_owned()),
+        ph: None,
+        pid: None,
+        tid: None,
+        ts: Some(100),
+        dur: Some(50),
+    };
+
+    let layer_data_during = TraceData {
+        cat: None,
+        args: None,
+        name: Some("UpdateLayerTree".to_owned()),
+        ph: None,
+        pid: None,
+        tid: None,
+        ts: Some(100),
+        dur: Some(25),
+    };
+
+    let layout_data_after = TraceData {
+        cat: None,
+        args: None,
+        name: Some("UpdateLayoutTree".to_owned()),
+        ph: None,
+        pid: None,
+        tid: None,
+        ts: Some(151),
+        dur: Some(50),
+    };
+
+    let layout_data_during = TraceData {
+        cat: None,
+        args: None,
+        name: Some("Layout".to_owned()),
+        ph: None,
+        pid: None,
+        tid: None,
+        ts: Some(100),
+        dur: Some(25),
+    };
+
+    let paint_data_after = TraceData {
+        cat: None,
+        args: None,
+        name: Some("Paint".to_owned()),
+        ph: None,
+        pid: None,
+        tid: None,
+        ts: Some(151),
+        dur: Some(50),
+    };
+
+    let trace = Trace {
+        trace_events: vec![
+            click_data,
+            layout_data_during,
+            paint_data_after,
+            layer_data_during,
+            layout_data_after,
+        ],
+    };
+    let calc = calc_event_trace(trace);
+    assert_eq!(calc.total_dur, 50);
+    // Maybe all I really need to do is calulate the time from start click start to last composite layer?
+    // Monitor other frameworks to try it out. Maybe other frameworks are doing alot of work in the browser if
+    // There is multiple browser events layered on top of each other?
+    // But finding the final composite layer might be a better method.
 }
