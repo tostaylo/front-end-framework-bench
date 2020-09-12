@@ -2,10 +2,10 @@
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
-use std::fs;
 use std::fs::File;
 use std::path::Path;
 use std::time::Instant;
+use std::{fs, io::BufWriter};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TimingResult {
@@ -52,8 +52,8 @@ fn main() {
     let start = Instant::now();
     let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
 
-    let trace_timing_results_per_framework: Vec<Vec<TimingResult>> = framework_directories
-        .map(|framework_dir_entry| {
+    let trace_timing_results_per_framework: Vec<TimingResult> = framework_directories
+        .flat_map(|framework_dir_entry| {
             let framework_directory_buf =
                 framework_dir_entry.expect("no framework directory").path();
             let framework = framework_directory_buf
@@ -98,6 +98,11 @@ fn main() {
 
     println!("k: {:?}", trace_timing_results_per_framework);
     // Here we write to file or db?
+    // let trace_timings_string = serde_json::to_string(&trace_timing_results_per_framework)
+    //     .expect("Could not convert to string");
+
+    let writer = BufWriter::new(File::create("trace_results.json").unwrap());
+    serde_json::to_writer_pretty(writer, &trace_timing_results_per_framework).unwrap();
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
 }
