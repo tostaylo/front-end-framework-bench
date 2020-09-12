@@ -50,39 +50,54 @@ struct Trace {
 
 fn main() {
     let start = Instant::now();
-    let directories = vec!["../traces/k/".to_owned(), "../traces/ten_k/".to_owned()];
-    let trace_timing_results: Vec<TimingResult> = directories
-        .iter()
-        .map(|directory| {
-            // Handle unwrapping no data here gracefully.
-            // if path.nth(1)
-            let mut paths = fs::read_dir(directory).unwrap();
-            let path_entry = paths.nth(1).unwrap().expect("msg");
-            let path_buf = path_entry.path();
-            let path_str = path_buf.to_str().unwrap();
-            let path_vec = path_str.split(".").collect::<Vec<&str>>();
-            //if path_vec len greater than 4 or use nth instead for OK
-            let current_framework = path_vec[path_vec.len() - 2].to_owned();
-            let current_timing_type = path_vec[path_vec.len() - 3].to_owned();
+    let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
 
-            let timings: Vec<TraceFileTimings> = paths
-                .map(|path| {
-                    let path_entry = path.unwrap();
-                    let path_buf = path_entry.path();
+    let trace_timing_results_per_framework: Vec<Vec<TimingResult>> = framework_directories
+        .map(|framework_dir_entry| {
+            let framework_directory_buf =
+                framework_dir_entry.expect("no framework directory").path();
+            let framework = framework_directory_buf
+                .to_str()
+                .unwrap()
+                .split("/")
+                .collect::<Vec<&str>>()
+                .pop()
+                .unwrap();
+            let metric_directories = fs::read_dir(framework_directory_buf.clone()).unwrap();
 
-                    println!("Name: {}", path_buf.display());
-                    let trace_file_timings =
-                        calc_event_trace(get_trace_file(path_buf.to_str().unwrap()));
-                    // fs::remove_file(path.to_str().unwrap()).expect("Could not remove file");
-                    trace_file_timings
+            let timing_results_per_metric: Vec<TimingResult> = metric_directories
+                .map(|metric_dir_entry| {
+                    let metric_dir_buf = metric_dir_entry.expect("no metric directory").path();
+                    let metric = metric_dir_buf
+                        .to_str()
+                        .unwrap()
+                        .split("/")
+                        .collect::<Vec<&str>>()
+                        .pop()
+                        .unwrap();
+                    let file_paths = fs::read_dir(metric_dir_buf.clone()).unwrap();
+                    println!("Name: {}", metric);
+
+                    let trace_file_timings_per_file: Vec<TraceFileTimings> = file_paths
+                        .map(|path| {
+                            let path_entry = path.unwrap();
+                            let path_buf = path_entry.path();
+                            calc_event_trace(get_trace_file(path_buf.to_str().unwrap()))
+                        })
+                        .collect();
+
+                    get_trace_timing_result(
+                        trace_file_timings_per_file,
+                        metric.to_owned(),
+                        framework.to_owned(),
+                    )
                 })
                 .collect();
-
-            get_trace_timing_result(timings, current_timing_type, current_framework)
+            timing_results_per_metric
         })
         .collect();
 
-    println!("k: {:?}", trace_timing_results);
+    println!("k: {:?}", trace_timing_results_per_framework);
     // Here we write to file or db?
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
@@ -95,6 +110,7 @@ fn get_trace_timing_result(
 ) -> TimingResult {
     timings.sort_by(|a, b| a.total_dur.cmp(&b.total_dur));
     timings.truncate(10);
+
     let k_trace_timing_total = timings.iter().fold(
         TraceFileTimings {
             total_dur: 0,

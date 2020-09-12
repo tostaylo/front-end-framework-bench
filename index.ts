@@ -1,36 +1,48 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-// maybe make this an npm package so when I write a script to start server it also runs all the tests.
-// takes a config of {selector, framework, test_name}
-// maybe no need to create different directories if the type of test is in the filename.
+const app_configs = [
+	{ dirName: 'rust-fel', framework: 'rust-fel', src: './apps/rust-fel-bench/index.js' },
+	{ dirName: 'es-next', framework: 'es-next', src: './apps/es-next-bench/index.js' },
+];
 
-// alternatively I can just continue to run this from the root directory.
-// doesn't make sense to make it a package really I don't think
+const metrics = [
+	{ fileName: 'k', dirName: 'k', selector: 'button#create1000' },
+	{ fileName: '10k', dirName: 'ten_k', selector: 'button#create10000' },
+];
 
 (async () => {
-	const html = `<html>
+	for (const config of app_configs) {
+		fs.rmdirSync(`traces/${config.dirName}`, { recursive: true });
+		fs.mkdirSync(`traces/${config.dirName}`, { recursive: true });
+
+		const html = `<html>
 	<head>
-		<title>rust-fel-bench</title>
+		<title>${config.framework}</title>
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
 		<link rel="stylesheet" href="./main.css" />
 	</head>
 	<body>
 		<div id="root"></div>
-		<script src="./apps/rust-fel-bench/index.js"type="module">
+		<script src=${config.src} type="module">
 		</script>
 	</body>
 </html>
 `;
-	fs.writeFile('index.html', html, function (err: any) {
-		if (err) return console.log(err);
-	});
+		fs.writeFile('index.html', html, function (err: any) {
+			if (err) return console.log(err);
+		});
 
-	for (let i = 0; i <= 11; i++) {
-		await measure_event('button#create1000', `traces/k/trace${i}.k.rust-fel.json`);
-	}
-	for (let i = 0; i <= 11; i++) {
-		await measure_event('button#create10000', `traces/ten_k/trace${i}.10k.react.json`);
+		for (const metric of metrics) {
+			fs.mkdirSync(`traces/${config.dirName}/${metric.dirName}`, { recursive: true });
+
+			for (let i = 0; i <= 11; i++) {
+				await measure_event(
+					metric.selector,
+					`traces/${config.dirName}/${metric.dirName}/trace${i}.${metric.fileName}.${config.framework}.json`
+				);
+			}
+		}
 	}
 })();
 
