@@ -18,7 +18,7 @@ type Metric = { fileName: string; dirName: string; selector: string; selector2?:
 		{ fileName: 'clear10K', dirName: 'clear-ten-k', selector: 'button#create10000', selector2: 'button#clear' },
 	];
 	for (const config of app_configs) {
-		await manageDirsHtmlTraces(config, 2, metrics);
+		await manageDirsHtmlTraces(config, 12, metrics);
 	}
 })();
 
@@ -97,8 +97,8 @@ async function measureEvent(selector: string, path: string, selector2: string = 
 
 		await page.tracing.stop();
 
-		const metrics = await page.metrics();
-		console.info(selector, '  ', path, '  ', selector2, '  ', metrics);
+		// const metrics = await page.metrics();
+		console.info(selector, '  ', path, '  ', selector2, '  ');
 
 		await browser.close();
 	} catch (error) {

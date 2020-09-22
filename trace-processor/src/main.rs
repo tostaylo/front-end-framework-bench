@@ -6,6 +6,9 @@ use std::fs::File;
 use std::path::Path;
 use std::time::Instant;
 use std::{fs, io::BufWriter};
+#[macro_use]
+extern crate prettytable;
+use prettytable::Table;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TimingResult {
@@ -96,15 +99,87 @@ fn main() {
         })
         .collect();
 
-    println!("k: {:?}", trace_timing_results_per_framework);
-    // Here we write to file or db?
-    // let trace_timings_string = serde_json::to_string(&trace_timing_results_per_framework)
-    //     .expect("Could not convert to string");
+    make_tables(&trace_timing_results_per_framework);
+    create_json_file(&trace_timing_results_per_framework);
 
-    let writer = BufWriter::new(File::create("trace_results.json").unwrap());
-    serde_json::to_writer_pretty(writer, &trace_timing_results_per_framework).unwrap();
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
+}
+
+fn create_json_file(trace_timing_results: &Vec<TimingResult>) {
+    let writer = BufWriter::new(File::create("trace_results.json").unwrap());
+    serde_json::to_writer_pretty(writer, &trace_timing_results).unwrap();
+}
+
+fn make_tables(trace_timing_results: &Vec<TimingResult>) {
+    let header_row = row![
+        "Framework",
+        "Metric",
+        "Click Duration",
+        "Render During Click",
+        "Render After Click",
+        "Total Duration"
+    ];
+
+    let mut create_k_table = Table::new();
+    let mut create_ten_k_table = Table::new();
+    let mut clear_k_table = Table::new();
+    let mut clear_ten_k_table = Table::new();
+
+    create_k_table.add_row(header_row.clone());
+    create_ten_k_table.add_row(header_row.clone());
+    clear_k_table.add_row(header_row.clone());
+    clear_ten_k_table.add_row(header_row.clone());
+
+    for result in trace_timing_results {
+        match result.timing_type.as_str() {
+            "k" => {
+                create_k_table.add_row(row![
+                    result.timing_framework,
+                    result.timing_type,
+                    result.final_timing.click_dur.to_string(),
+                    result.final_timing.render_during_click.to_string(),
+                    result.final_timing.render_after_click.to_string(),
+                    result.final_timing.total_dur.to_string(),
+                ]);
+            }
+            "ten-k" => {
+                create_ten_k_table.add_row(row![
+                    result.timing_framework,
+                    result.timing_type,
+                    result.final_timing.click_dur.to_string(),
+                    result.final_timing.render_during_click.to_string(),
+                    result.final_timing.render_after_click.to_string(),
+                    result.final_timing.total_dur.to_string(),
+                ]);
+            }
+            "clear-k" => {
+                clear_k_table.add_row(row![
+                    result.timing_framework,
+                    result.timing_type,
+                    result.final_timing.click_dur.to_string(),
+                    result.final_timing.render_during_click.to_string(),
+                    result.final_timing.render_after_click.to_string(),
+                    result.final_timing.total_dur.to_string(),
+                ]);
+            }
+            "clear-ten-k" => {
+                clear_ten_k_table.add_row(row![
+                    result.timing_framework,
+                    result.timing_type,
+                    result.final_timing.click_dur.to_string(),
+                    result.final_timing.render_during_click.to_string(),
+                    result.final_timing.render_after_click.to_string(),
+                    result.final_timing.total_dur.to_string(),
+                ]);
+            }
+            _ => (),
+        }
+    }
+    create_k_table.printstd();
+    create_ten_k_table.printstd();
+    clear_k_table.printstd();
+    clear_ten_k_table.printstd();
 }
 
 fn get_trace_timing_result(
@@ -247,22 +322,6 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
 
     let click_dur = click.dur.unwrap();
     let total_dur = click_dur + render_after_click;
-
-    println!(
-        "Total duration is {:?} micros.
-        Click duration is {:?} micros.
-        Click time start is {:?} micros, 
-        Click time end is {:?} micros,
-        Rendering during click is {:?} micros,
-        Rendering after click is {:?} micros,
-          ",
-        total_dur,
-        click_dur,
-        click_start_time,
-        click_time_end,
-        render_during_click,
-        render_after_click
-    );
 
     TraceFileTimings {
         total_dur,
