@@ -2,13 +2,14 @@
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
-use std::fs::File;
 use std::path::Path;
 use std::time::Instant;
+use std::{collections::hash_map::Entry, fs::File};
 use std::{fs, io::BufWriter};
 #[macro_use]
 extern crate prettytable;
 use prettytable::Table;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TimingResult {
@@ -99,19 +100,25 @@ fn main() {
         })
         .collect();
 
-    make_tables(&trace_timing_results_per_framework);
+    let out = File::create("bench_csv.txt").expect("file couldn't be created");
+    make_tables(&trace_timing_results_per_framework)
+        .to_csv(out)
+        .expect("could not write to file");
+
     create_json_file(&trace_timing_results_per_framework);
 
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
 }
 
-fn create_json_file(trace_timing_results: &Vec<TimingResult>) {
+fn create_json_file(trace_timing_results: &[TimingResult]) {
     let writer = BufWriter::new(File::create("trace_results.json").unwrap());
     serde_json::to_writer_pretty(writer, &trace_timing_results).unwrap();
 }
 
-fn make_tables(trace_timing_results: &Vec<TimingResult>) {
+fn make_tables(trace_timing_results: &[TimingResult]) -> Table {
+    let mut map: HashMap<String, Table> = HashMap::new();
+
     let header_row = row![
         "Framework",
         "Metric",
@@ -120,21 +127,35 @@ fn make_tables(trace_timing_results: &Vec<TimingResult>) {
         "Render After Click",
         "Total Duration"
     ];
-
-    let mut create_k_table = Table::new();
-    let mut create_ten_k_table = Table::new();
-    let mut clear_k_table = Table::new();
-    let mut clear_ten_k_table = Table::new();
-
-    create_k_table.add_row(header_row.clone());
-    create_ten_k_table.add_row(header_row.clone());
-    clear_k_table.add_row(header_row.clone());
-    clear_ten_k_table.add_row(header_row.clone());
+    let mut full_table = Table::new();
+    full_table.add_row(header_row.clone());
 
     for result in trace_timing_results {
-        match result.timing_type.as_str() {
-            "k" => {
-                create_k_table.add_row(row![
+        full_table.add_row(row![
+            result.timing_framework,
+            result.timing_type,
+            result.final_timing.click_dur.to_string(),
+            result.final_timing.render_during_click.to_string(),
+            result.final_timing.render_after_click.to_string(),
+            result.final_timing.total_dur.to_string(),
+        ]);
+
+        match map.entry(result.timing_type.clone()) {
+            Entry::Vacant(e) => {
+                let mut table = Table::new();
+                table.add_row(header_row.clone());
+                table.add_row(row![
+                    result.timing_framework,
+                    result.timing_type,
+                    result.final_timing.click_dur.to_string(),
+                    result.final_timing.render_during_click.to_string(),
+                    result.final_timing.render_after_click.to_string(),
+                    result.final_timing.total_dur.to_string(),
+                ]);
+                e.insert(table);
+            }
+            Entry::Occupied(mut e) => {
+                e.get_mut().add_row(row![
                     result.timing_framework,
                     result.timing_type,
                     result.final_timing.click_dur.to_string(),
@@ -143,43 +164,14 @@ fn make_tables(trace_timing_results: &Vec<TimingResult>) {
                     result.final_timing.total_dur.to_string(),
                 ]);
             }
-            "ten-k" => {
-                create_ten_k_table.add_row(row![
-                    result.timing_framework,
-                    result.timing_type,
-                    result.final_timing.click_dur.to_string(),
-                    result.final_timing.render_during_click.to_string(),
-                    result.final_timing.render_after_click.to_string(),
-                    result.final_timing.total_dur.to_string(),
-                ]);
-            }
-            "clear-k" => {
-                clear_k_table.add_row(row![
-                    result.timing_framework,
-                    result.timing_type,
-                    result.final_timing.click_dur.to_string(),
-                    result.final_timing.render_during_click.to_string(),
-                    result.final_timing.render_after_click.to_string(),
-                    result.final_timing.total_dur.to_string(),
-                ]);
-            }
-            "clear-ten-k" => {
-                clear_ten_k_table.add_row(row![
-                    result.timing_framework,
-                    result.timing_type,
-                    result.final_timing.click_dur.to_string(),
-                    result.final_timing.render_during_click.to_string(),
-                    result.final_timing.render_after_click.to_string(),
-                    result.final_timing.total_dur.to_string(),
-                ]);
-            }
-            _ => (),
         }
     }
-    create_k_table.printstd();
-    create_ten_k_table.printstd();
-    clear_k_table.printstd();
-    clear_ten_k_table.printstd();
+
+    for table in map.values() {
+        table.printstd();
+    }
+    full_table.printstd();
+    full_table
 }
 
 fn get_trace_timing_result(
