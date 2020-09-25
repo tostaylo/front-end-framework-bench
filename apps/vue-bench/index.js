@@ -1,6 +1,6 @@
-// import ATable from './table.js';
+'use strict';
 
-export default {
+const App = {
 	name: 'App',
 	data() {
 		return {
@@ -35,22 +35,32 @@ export default {
 		},
 	},
 
-	// components: {
-	// 	ATable,
-	// },
 	template: `
     <div id="main" class="main">
       <header>
 	      <h1>vue-bench</h1>
         <button id="create1000" v-on:click="() => handleCreateClear(1000)">CreateK</button>
-        <button id="create10000"v-on:click="() => handleCreateClear(10000)">CreateK</button>
+        <button id="create10000" v-on:click="() => handleCreateClear(10000)">CreateK</button>
         <button id="clear" v-on:click="() => handleCreateClear(0)">Clear</button>
       </header>
       <table v-if="tableLength > 0">
-        <tr v-for="(n, index) in tableLength" :key=n>
-          <td>{{n}}</td><td>{{words[getIndex(n) % 12]}} {{words[getIndex(n) % 13]}} {{words[getIndex(n) % 14]}}</td>
-        </tr>
+        <tbody>
+          <tr v-for="(n, index) in tableLength" :key=n>
+            <td>{{n}}</td><td>{{words[getIndex(n) % 12]}} {{words[getIndex(n) % 13]}} {{words[getIndex(n) % 14]}}</td>
+          </tr>
+        </tbody>
       </table>
     </div>
   `,
 };
+
+function mountApp() {
+	Vue.createApp(App).mount(`#root`);
+}
+
+const head = document.querySelector('head');
+const vueScript = document.createElement('script');
+vueScript.src = 'https://unpkg.com/vue@next';
+head?.appendChild(vueScript);
+
+vueScript.addEventListener('load', mountApp);

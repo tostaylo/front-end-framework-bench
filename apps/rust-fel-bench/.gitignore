@@ -4,6 +4,7 @@ node_modules
 cypress/integration/examples/*
 cypress/screenshots/*
 cypress/videos/*
-
+cypress/index.js
+index.js
 
 

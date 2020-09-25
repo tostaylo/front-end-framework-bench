@@ -1,4 +1,4 @@
 traces/
-index.js
 index.html
+./index.js
 trace_results.json
