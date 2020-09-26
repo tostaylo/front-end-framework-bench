@@ -19,6 +19,7 @@ type Metric = { fileName: string; dirName: string; selector: string; selector2?:
 		{ fileName: 'clear10K', dirName: 'clear-ten-k', selector: 'button#create10000', selector2: 'button#clear' },
 	];
 	for (const config of app_configs) {
+		console.warn(`starting new run for ${config.framework}`);
 		await manageDirsHtmlTraces(config, 12, metrics);
 	}
 })();
