@@ -2,28 +2,10 @@ use crate::handle;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug, Clone, Copy)]
-pub enum State {
-    K,
-    TenK,
-    Cleared,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State::Cleared
-    }
-}
-#[derive(Debug, Clone, Copy)]
-pub enum Actions {
-    CreateK,
-    CreateTenK,
-    Clear,
-}
 #[derive(Debug, Default, Clone)]
 pub struct Main {
     id: String,
-    state: State,
+    state: i32,
     counter: usize,
     words: Vec<String>,
 }
@@ -33,7 +15,7 @@ impl Main {
         let main = Main {
             id: "main".to_owned(),
             counter: 0,
-            state: State::Cleared,
+            state: 0,
             words: vec![
                 "There".to_owned(),
                 "High".to_owned(),
@@ -57,17 +39,13 @@ impl Main {
 
 impl rust_fel::Component for handle::Handle<Main> {
     type Properties = ();
-    type Message = Actions;
+    type Message = i32;
     type State = ();
 
     fn add_props(&mut self, _props: Self::Properties) {}
 
-    fn reduce_state(&mut self, message: Self::Message) {
-        match message {
-            Actions::CreateK => self.0.borrow_mut().state = State::K,
-            Actions::CreateTenK => self.0.borrow_mut().state = State::TenK,
-            Actions::Clear => self.0.borrow_mut().state = State::Cleared,
-        }
+    fn reduce_state(&mut self, message: i32) {
+        self.0.borrow_mut().state = message;
         self.0.borrow_mut().counter += 1;
         rust_fel::re_render(self.render(), Some(self.0.borrow().id.clone()));
     }
@@ -78,53 +56,28 @@ impl rust_fel::Component for handle::Handle<Main> {
         let mut el = None;
         let counter = borrow.counter;
 
-        match state {
-            State::K => {
-                let mut main_table = rust_fel::html("<table></table>".to_owned());
-                let mut table_body = rust_fel::html("<tbody></tbody>".to_owned());
-                let mut table_rows = vec![];
+        if state > 0 {
+            let mut main_table = rust_fel::html("<table></table>".to_owned());
+            let mut table_body = rust_fel::html("<tbody></tbody>".to_owned());
+            let mut table_rows = vec![];
 
-                for num in 0..1000 {
-                    let t = match table_rows.len() {
-                        x if x > 14 => x + counter,
-                        x if x <= 14 => x + 14 + counter,
-                        _ => 0,
-                    };
-                    table_rows.push(rust_fel::html(format!(
-                        "<tr><td>{}</td><td>{} {} {}</td></tr>",
-                        num + 1,
-                        borrow.words[t % 12],
-                        borrow.words[t % 13],
-                        borrow.words[t % 14],
-                    )));
-                }
-                table_body.props.children = Some(table_rows);
-                main_table.props.children = Some(vec![table_body]);
-                el = Some(main_table);
+            for num in 0..state {
+                let t = match table_rows.len() {
+                    x if x > 14 => x + counter,
+                    x if x <= 14 => x + 14 + counter,
+                    _ => 0,
+                };
+                table_rows.push(rust_fel::html(format!(
+                    "<tr><td>{}</td><td>{} {} {}</td></tr>",
+                    num + 1,
+                    borrow.words[t % 12],
+                    borrow.words[t % 13],
+                    borrow.words[t % 14],
+                )));
             }
-            State::TenK => {
-                let mut main_table = rust_fel::html("<table></table>".to_owned());
-                let mut table_body = rust_fel::html("<tbody></tbody>".to_owned());
-                let mut table_rows = vec![];
-                for num in 0..10000 {
-                    let t = match table_rows.len() {
-                        x if x > 14 => x + counter,
-                        x if x <= 14 => x + 14 + counter,
-                        _ => 0,
-                    };
-                    table_rows.push(rust_fel::html(format!(
-                        "<tr><td>{}</td><td>{} {} {}</td></tr>",
-                        num + 1,
-                        borrow.words[t % 12],
-                        borrow.words[t % 13],
-                        borrow.words[t % 14],
-                    )));
-                }
-                table_body.props.children = Some(table_rows);
-                main_table.props.children = Some(vec![table_body]);
-                el = Some(main_table);
-            }
-            State::Cleared => (),
+            table_body.props.children = Some(table_rows);
+            main_table.props.children = Some(vec![table_body]);
+            el = Some(main_table);
         }
 
         let heading = rust_fel::html("<h1>rust-fel bench</h1>".to_owned());
@@ -135,7 +88,7 @@ impl rust_fel::Component for handle::Handle<Main> {
             rust_fel::Props {
                 id: Some("create1000".to_owned()),
                 text: Some("Create 1K".to_owned()),
-                on_click: Some(Box::new(move || clone.reduce_state(Actions::CreateK))),
+                on_click: Some(Box::new(move || clone.reduce_state(1000))),
                 ..Default::default()
             },
         );
@@ -146,7 +99,7 @@ impl rust_fel::Component for handle::Handle<Main> {
             rust_fel::Props {
                 id: Some("create10000".to_owned()),
                 text: Some("Create 10K".to_owned()),
-                on_click: Some(Box::new(move || clone.reduce_state(Actions::CreateTenK))),
+                on_click: Some(Box::new(move || clone.reduce_state(10000))),
                 ..Default::default()
             },
         );
@@ -157,7 +110,7 @@ impl rust_fel::Component for handle::Handle<Main> {
             rust_fel::Props {
                 id: Some("clear".to_owned()),
                 text: Some("Clear".to_owned()),
-                on_click: Some(Box::new(move || clone.reduce_state(Actions::Clear))),
+                on_click: Some(Box::new(move || clone.reduce_state(0))),
                 ..Default::default()
             },
         );
