@@ -195,10 +195,10 @@ fn get_trace_timing_result(
     timing_type: String,
     timing_framework: String,
 ) -> TimingResult {
-    if timings.len() == 0 {
+    if timings.is_empty() {
         return TimingResult {
             timing_type: format!("No timing found for {:?}", timing_type),
-            timing_framework: timing_framework,
+            timing_framework,
             final_timing: TraceFileTimings {
                 total_dur: 0,
                 click_dur: 0,
