@@ -57,7 +57,7 @@ fn main() {
     println!("Starting Trace Processing");
     let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
 
-    let trace_timing_results_per_framework: Vec<TimingResult> = framework_directories
+    let mut trace_timing_results_per_framework: Vec<TimingResult> = framework_directories
         .flat_map(|framework_dir_entry| {
             println!("{:?}", framework_dir_entry);
 
@@ -106,16 +106,25 @@ fn main() {
             timing_results_per_metric
         })
         .collect();
+    trace_timing_results_per_framework.sort_by(|a, b| {
+        a.final_timing
+            .total_dur
+            .partial_cmp(&b.final_timing.total_dur)
+            .unwrap()
+    });
 
-    let out = File::create("bench_csv.txt").expect("file couldn't be created");
-    make_tables(&trace_timing_results_per_framework)
-        .to_csv(out)
-        .expect("could not write to file");
-
+    create_csv_file(&trace_timing_results_per_framework);
     create_json_file(&trace_timing_results_per_framework);
 
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
+}
+
+fn create_csv_file(trace_timing_results: &[TimingResult]) {
+    let out = File::create("bench_csv.txt").expect("file couldn't be created");
+    make_tables(trace_timing_results)
+        .to_csv(out)
+        .expect("could not write to file");
 }
 
 fn create_json_file(trace_timing_results: &[TimingResult]) {
@@ -186,6 +195,18 @@ fn get_trace_timing_result(
     timing_type: String,
     timing_framework: String,
 ) -> TimingResult {
+    if timings.len() == 0 {
+        return TimingResult {
+            timing_type: format!("No timing found for {:?}", timing_type),
+            timing_framework: timing_framework,
+            final_timing: TraceFileTimings {
+                total_dur: 0,
+                click_dur: 0,
+                render_during_click: 0,
+                render_after_click: 0,
+            },
+        };
+    }
     timings.sort_by(|a, b| a.total_dur.cmp(&b.total_dur));
     timings.truncate(10);
 
