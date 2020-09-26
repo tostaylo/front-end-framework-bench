@@ -20,8 +20,10 @@ type Metric = { fileName: string; dirName: string; selector: string; selector2?:
 	];
 	for (const config of app_configs) {
 		console.warn(`starting new run for ${config.framework}`);
-		await manageDirsHtmlTraces(config, 12, metrics);
+		await manageDirsHtmlTraces(config, 1, metrics);
 	}
+	console.log('Finished running puppeteer benches');
+	process.exit(0);
 })();
 
 async function manageDirsHtmlTraces(config: Config, iterations: number, metrics: Metric[]) {
@@ -84,7 +86,7 @@ async function measureEvent(selector: string, path: string, selector2: string = 
 
 		const page = await browser.newPage();
 		const navigationPromise = page.waitForNavigation();
-		await page.goto('http://localhost:8000/');
+		await page.goto('http://localhost:80/');
 		await page.setViewport({ width: 1440, height: 714 });
 		await navigationPromise;
 		await page.waitFor(1000);
@@ -104,7 +106,7 @@ async function measureEvent(selector: string, path: string, selector2: string = 
 
 		await browser.close();
 	} catch (error) {
-		console.warn(error);
-		process.abort;
+		console.error(error);
+		console.log('Moving on to the next test');
 	}
 }

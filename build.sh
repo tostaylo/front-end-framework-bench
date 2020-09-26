@@ -2,7 +2,12 @@
 
 set -ex
 
-http &>/dev/null &
-npm run tsc && node index.js && fg
+python -m http.server 80  & 
+server_pid=$!
+npm run tsc && node index.js 
+kill -KILL $server_pid
 cd trace-processor 
 cargo run
+
+# no output in console
+# &>/dev/null

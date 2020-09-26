@@ -54,10 +54,13 @@ struct Trace {
 
 fn main() {
     let start = Instant::now();
+    println!("Starting Trace Processing");
     let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
 
     let trace_timing_results_per_framework: Vec<TimingResult> = framework_directories
         .flat_map(|framework_dir_entry| {
+            println!("{:?}", framework_dir_entry);
+
             let framework_directory_buf =
                 framework_dir_entry.expect("no framework directory").path();
             let framework = framework_directory_buf
@@ -71,6 +74,8 @@ fn main() {
 
             let timing_results_per_metric: Vec<TimingResult> = metric_directories
                 .map(|metric_dir_entry| {
+                    println!("{:?}", metric_dir_entry);
+
                     let metric_dir_buf = metric_dir_entry.expect("no metric directory").path();
                     let metric = metric_dir_buf
                         .to_str()
@@ -83,6 +88,8 @@ fn main() {
 
                     let trace_file_timings_per_file: Vec<TraceFileTimings> = file_paths
                         .map(|path| {
+                            println!("{:?}", path);
+
                             let path_entry = path.unwrap();
                             let path_buf = path_entry.path();
                             calc_event_trace(get_trace_file(path_buf.to_str().unwrap()))
