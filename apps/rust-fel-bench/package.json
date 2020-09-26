@@ -6,15 +6,8 @@
 	"scripts": {
 		"start": "tsc --watch",
 		"cargo": "sh build.sh",
-		"build-ts": "tsc",
-		"cypress:open": "cypress open",
-		"cypress:run": "cypress run --browser chrome --headless --config video=false",
-		"node-server": "http-server --port 8000"
+		"build-ts": "tsc"
 	},
 	"author": "Torre Taylor",
-	"license": "ISC",
-	"devDependencies": {
-		"cypress": "^4.12.1",
-		"http-server": "^0.12.3"
-	}
+	"license": "ISC"
 }

@@ -91,8 +91,8 @@ function start() {
 const head = document.querySelector('head');
 const reactScript = document.createElement('script');
 const reactDomScript = document.createElement('script');
-reactScript.src = 'https://unpkg.com/react@16.13.1/umd/react.development.js';
-reactDomScript.src = 'https://unpkg.com/react-dom@16.13.1/umd/react-dom.development.js';
+reactScript.src = 'https://unpkg.com/react@16/umd/react.production.min.js';
+reactDomScript.src = 'https://unpkg.com/react-dom@16/umd/react-dom.production.min.js';
 reactScript.crossOrigin = true;
 reactDomScript.crossOrigin = true;
 head?.appendChild(reactScript);
