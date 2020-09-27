@@ -87,7 +87,7 @@ fn main() {
     }
     drop(tx);
 
-    let mut timing_results: Vec<TimingResult> = rx.iter().flat_map(|item| item).collect();
+    let mut timing_results: Vec<TimingResult> = rx.iter().flatten().collect();
     sort_timing_results(&mut timing_results);
 
     create_csv_file(&timing_results);
@@ -97,7 +97,7 @@ fn main() {
     println!("Elapsed: {:.2?}", elapsed);
 }
 
-fn sort_timing_results(timing_results: &mut Vec<TimingResult>) -> () {
+fn sort_timing_results(timing_results: &mut Vec<TimingResult>) {
     timing_results.sort_by(|a, b| {
         a.final_timing
             .total_dur
