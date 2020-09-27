@@ -8,8 +8,11 @@ use std::{collections::hash_map::Entry, fs::File};
 use std::{fs, io::BufWriter};
 #[macro_use]
 extern crate prettytable;
+use fs::DirEntry;
 use prettytable::Table;
 use std::collections::HashMap;
+use std::sync::mpsc;
+use std::thread;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TimingResult {
@@ -55,14 +58,54 @@ struct Trace {
 fn main() {
     let start = Instant::now();
     println!("Starting Trace Processing");
-    let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
 
-    let mut trace_timing_results_per_framework: Vec<TimingResult> = framework_directories
+    let (tx, rx) = mpsc::channel();
+
+    let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
+    let mut threads = vec![];
+
+    for directory in framework_directories {
+        let tx1 = mpsc::Sender::clone(&tx);
+        let thrd = thread::spawn(move || {
+            println!("{:?} Starting new thread on a new directory", directory);
+            let val =
+                process_trace_directories(vec![directory.expect("The directory is not found")]);
+            tx1.send(val).unwrap()
+        });
+        threads.push(thrd);
+    }
+
+    for thrd in threads {
+        thrd.join().unwrap();
+    }
+    drop(tx);
+
+    let mut timing_results: Vec<TimingResult> = rx.iter().flat_map(|item| item).collect();
+    sort_timing_results(&mut timing_results);
+
+    create_csv_file(&timing_results);
+    create_json_file(&timing_results);
+
+    let elapsed = start.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
+
+fn sort_timing_results(timing_results: &mut Vec<TimingResult>) -> () {
+    timing_results.sort_by(|a, b| {
+        a.final_timing
+            .total_dur
+            .partial_cmp(&b.final_timing.total_dur)
+            .unwrap()
+    })
+}
+
+fn process_trace_directories(framework_directories: Vec<DirEntry>) -> Vec<TimingResult> {
+    let trace_timing_results_per_framework: Vec<TimingResult> = framework_directories
+        .iter()
         .flat_map(|framework_dir_entry| {
             println!("{:?}", framework_dir_entry);
 
-            let framework_directory_buf =
-                framework_dir_entry.expect("no framework directory").path();
+            let framework_directory_buf = framework_dir_entry.path();
             let framework = framework_directory_buf
                 .to_str()
                 .unwrap()
@@ -106,18 +149,8 @@ fn main() {
             timing_results_per_metric
         })
         .collect();
-    trace_timing_results_per_framework.sort_by(|a, b| {
-        a.final_timing
-            .total_dur
-            .partial_cmp(&b.final_timing.total_dur)
-            .unwrap()
-    });
 
-    create_csv_file(&trace_timing_results_per_framework);
-    create_json_file(&trace_timing_results_per_framework);
-
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    trace_timing_results_per_framework
 }
 
 fn create_csv_file(trace_timing_results: &[TimingResult]) {
