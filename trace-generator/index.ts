@@ -10,7 +10,7 @@ const ROOT_DIR = '../traces/';
 	for (const config of appConfigs) {
 		console.warn(`starting new run for ${config.framework}`);
 
-		await manageDirsHtmlTraces(config, 1, metrics);
+		await manageDirsHtmlTraces(config, 16, metrics);
 	}
 	console.log('Finished running puppeteer benches');
 	process.exit(0);
