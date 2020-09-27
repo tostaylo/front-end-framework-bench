@@ -4,6 +4,8 @@ const fs = require('fs');
 import { Config, appConfigs } from './configs';
 import { metrics, Metric } from './metrics';
 
+const ROOT_DIR = '../traces/';
+
 (async () => {
 	for (const config of appConfigs) {
 		console.warn(`starting new run for ${config.framework}`);
@@ -22,12 +24,12 @@ async function manageDirsHtmlTraces(config: Config, iterations: number, metrics:
 
 async function runTraces(config: Config, metrics: Metric[], iterations: number) {
 	for (const metric of metrics) {
-		fs.mkdirSync(`traces/${config.dirName}/${metric.dirName}`, { recursive: true });
+		fs.mkdirSync(`${ROOT_DIR}${config.dirName}/${metric.dirName}`, { recursive: true });
 
 		for (let i = 1; i <= iterations; i++) {
 			await measureEvent(
 				metric.selector,
-				`traces/${config.dirName}/${metric.dirName}/trace${i}.${metric.fileName}.${config.framework}.json`,
+				`${ROOT_DIR}${config.dirName}/${metric.dirName}/trace${i}.${metric.fileName}.${config.framework}.json`,
 				metric.selector2
 			);
 		}
@@ -35,8 +37,8 @@ async function runTraces(config: Config, metrics: Metric[], iterations: number) 
 }
 
 function manageDirs(config: Config) {
-	fs.rmdirSync(`traces/${config.dirName}`, { recursive: true });
-	fs.mkdirSync(`traces/${config.dirName}`, { recursive: true });
+	fs.rmdirSync(`${ROOT_DIR}${config.dirName}`, { recursive: true });
+	fs.mkdirSync(`${ROOT_DIR}${config.dirName}`, { recursive: true });
 }
 
 function createHTML(config: Config) {
@@ -54,7 +56,7 @@ function createHTML(config: Config) {
 	</body>
 </html>
 `;
-	fs.writeFile('index.html', html, function (err: any) {
+	fs.writeFile('../index.html', html, function (err: any) {
 		if (err) return console.log(err);
 	});
 }
@@ -77,13 +79,13 @@ async function measureEvent(selector: string, path: string, selector2: string = 
 		await page.goto('http://localhost:80/');
 		await page.setViewport({ width: 1440, height: 714 });
 		await navigationPromise;
-		await page.waitFor(1000);
+		await page.waitForTimeout(1000);
 		await page.waitForSelector(selector);
 		await page.tracing.start({ path, screenshots: true });
 		await page.click(selector);
 
 		if (selector2) {
-			await page.waitFor(2000);
+			await page.waitForTimeout(2000);
 			await page.click(selector2);
 		}
 
