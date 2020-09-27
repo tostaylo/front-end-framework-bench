@@ -70,13 +70,20 @@ fn main() {
             println!("{:?} Starting new thread on a new directory", directory);
             let val =
                 process_trace_directories(vec![directory.expect("The directory is not found")]);
-            tx1.send(val).unwrap()
+            tx1.send(val).unwrap();
         });
         threads.push(thrd);
     }
 
     for thrd in threads {
-        thrd.join().unwrap();
+        match thrd.join() {
+            Ok(x) => {
+                println!("Thread joined successfully {:?}", x);
+            }
+            Err(x) => {
+                println!("Thread join failure {:?}", x);
+            }
+        }
     }
     drop(tx);
 

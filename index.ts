@@ -1,25 +1,13 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-type Config = { dirName: string; framework: string; src: string };
-type Metric = { fileName: string; dirName: string; selector: string; selector2?: string };
+import { Config, appConfigs } from './configs';
+import { metrics, Metric } from './metrics';
 
 (async () => {
-	const app_configs = [
-		{ dirName: 'rust-fel', framework: 'rust-fel', src: './apps/rust-fel-bench/index.js' },
-		{ dirName: 'es-next', framework: 'es-next', src: './apps/es-next-bench/index.js' },
-		{ dirName: 'vue', framework: 'vue', src: './apps/vue-bench/index.js' },
-		{ dirName: 'react', framework: 'react', src: './apps/react-bench/index.js' },
-	];
-
-	const metrics = [
-		{ fileName: 'k', dirName: 'k', selector: 'button#create1000' },
-		{ fileName: '10k', dirName: 'ten-k', selector: 'button#create10000' },
-		{ fileName: 'clearK', dirName: 'clear-k', selector: 'button#create1000', selector2: 'button#clear' },
-		{ fileName: 'clear10K', dirName: 'clear-ten-k', selector: 'button#create10000', selector2: 'button#clear' },
-	];
-	for (const config of app_configs) {
+	for (const config of appConfigs) {
 		console.warn(`starting new run for ${config.framework}`);
+
 		await manageDirsHtmlTraces(config, 1, metrics);
 	}
 	console.log('Finished running puppeteer benches');
