@@ -1,18 +1,27 @@
-const puppeteer = require('puppeteer');
-const fs = require('fs');
-
-import { Config, appConfigs } from './configs';
+import * as puppeteer from 'puppeteer';
+import * as fs from 'fs';
+import { configs, Config } from './configs';
 import { metrics, Metric } from './metrics';
 
 const ROOT_DIR = '../traces/';
 
-(async () => {
-	for (const config of appConfigs) {
-		console.warn(`starting new run for ${config.framework}`);
+interface Page extends puppeteer.Page {
+	waitForTimeout: (num: number) => Promise<void>;
+}
 
+(async () => {
+	//could get args here
+	// const configArr = configArg ? config[config[configArg#] : configs]
+	// const metricArr = metricArg ? metric[metric[metricArg#] : metrics ]
+	// const testToRun = iterationArg ? iterationArg# : 12;
+
+	for (const config of configs) {
+		console.warn(`starting new run for ${config.framework}`);
+		// try catch here
 		await manageDirsHtmlTraces(config, 16, metrics);
 	}
 	console.log('Finished running puppeteer benches');
+	// make sure this is needed
 	process.exit(0);
 })();
 
@@ -42,6 +51,7 @@ function manageDirs(config: Config) {
 }
 
 function createHTML(config: Config) {
+	// Let's inline css
 	const html = `<html>
 	<head>
 		<title>${config.framework}</title>
@@ -56,12 +66,12 @@ function createHTML(config: Config) {
 	</body>
 </html>
 `;
-	fs.writeFile('../index.html', html, function (err: any) {
+	fs.writeFile('../index.html', html, function (err) {
 		if (err) return console.log(err);
 	});
 }
 
-async function measureEvent(selector: string, path: string, selector2: string = ''): Promise<void> {
+async function measureEvent(selector: string, path: string, selector2 = ''): Promise<void> {
 	try {
 		const browser = await puppeteer.launch({
 			headless: true,
@@ -79,19 +89,20 @@ async function measureEvent(selector: string, path: string, selector2: string = 
 		await page.goto('http://localhost:80/');
 		await page.setViewport({ width: 1440, height: 714 });
 		await navigationPromise;
-		await page.waitForTimeout(1000);
+		await (page as Page).waitForTimeout(2000);
 		await page.waitForSelector(selector);
 		await page.tracing.start({ path, screenshots: true });
 		await page.click(selector);
 
 		if (selector2) {
-			await page.waitForTimeout(2000);
+			await (page as Page).waitForTimeout(3000);
 			await page.click(selector2);
 		}
 
 		await page.tracing.stop();
 
 		// const metrics = await page.metrics();
+		// memory heap info here?
 		console.info(selector, '  ', path, '  ', selector2, '  ');
 
 		await browser.close();
