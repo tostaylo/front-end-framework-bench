@@ -22,10 +22,10 @@ struct TimingResult {
 }
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TraceFileTimings {
-    total_dur: i64,
-    click_dur: i64,
-    render_during_click: i64,
-    render_after_click: i64,
+    total_dur: f64,
+    click_dur: f64,
+    render_during_click: f64,
+    render_after_click: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -161,7 +161,7 @@ fn process_trace_directories(framework_directories: Vec<DirEntry>) -> Vec<Timing
 }
 
 fn create_csv_file(trace_timing_results: &[TimingResult]) {
-    let out = File::create("bench_csv.txt").expect("file couldn't be created");
+    let out = File::create("trace_results.txt").expect("file couldn't be created");
     make_tables(trace_timing_results)
         .to_csv(out)
         .expect("could not write to file");
@@ -178,10 +178,10 @@ fn make_tables(trace_timing_results: &[TimingResult]) -> Table {
     let header_row = row![
         "Framework",
         "Metric",
-        "Click Duration",
-        "Render During Click",
-        "Render After Click",
-        "Total Duration"
+        "Click Duration (ms)",
+        "Render During Click (ms)",
+        "Render After Click (ms)",
+        "Total Duration (ms)"
     ];
     let mut full_table = Table::new();
     full_table.add_row(header_row.clone());
@@ -240,22 +240,22 @@ fn get_trace_timing_result(
             timing_type: format!("No timing found for {:?}", timing_type),
             timing_framework,
             final_timing: TraceFileTimings {
-                total_dur: 0,
-                click_dur: 0,
-                render_during_click: 0,
-                render_after_click: 0,
+                total_dur: 0.0,
+                click_dur: 0.0,
+                render_during_click: 0.0,
+                render_after_click: 0.0,
             },
         };
     }
-    timings.sort_by(|a, b| a.total_dur.cmp(&b.total_dur));
+    timings.sort_by(|a, b| a.total_dur.partial_cmp(&b.total_dur).unwrap());
     timings.truncate(10);
 
     let k_trace_timing_total = timings.iter().fold(
         TraceFileTimings {
-            total_dur: 0,
-            click_dur: 0,
-            render_during_click: 0,
-            render_after_click: 0,
+            total_dur: 0.0,
+            click_dur: 0.0,
+            render_during_click: 0.0,
+            render_after_click: 0.0,
         },
         |acc, x| TraceFileTimings {
             total_dur: acc.total_dur + x.total_dur,
@@ -265,13 +265,14 @@ fn get_trace_timing_result(
         },
     );
 
-    let divisor = timings.len() as i64;
+    let divisor = timings.len() as f64;
+    let convert_ms = 1000.0;
 
     let final_timing = TraceFileTimings {
-        total_dur: k_trace_timing_total.total_dur / divisor,
-        click_dur: k_trace_timing_total.click_dur / divisor,
-        render_during_click: k_trace_timing_total.render_during_click / divisor,
-        render_after_click: k_trace_timing_total.render_after_click / divisor,
+        total_dur: k_trace_timing_total.total_dur / divisor / convert_ms,
+        click_dur: k_trace_timing_total.click_dur / divisor / convert_ms,
+        render_during_click: k_trace_timing_total.render_during_click / divisor / convert_ms,
+        render_after_click: k_trace_timing_total.render_after_click / divisor / convert_ms,
     };
 
     TimingResult {
@@ -384,10 +385,10 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
     let total_dur = click_dur + render_after_click;
 
     TraceFileTimings {
-        total_dur,
-        click_dur,
-        render_during_click,
-        render_after_click,
+        total_dur: total_dur as f64,
+        click_dur: click_dur as f64,
+        render_during_click: render_during_click as f64,
+        render_after_click: render_after_click as f64,
     }
 }
 
@@ -469,10 +470,10 @@ pub fn calc_event_trace_is_correct() {
         ],
     };
     let calc = calc_event_trace(trace.clone());
-    assert_eq!(calc.total_dur, 150);
-    assert_eq!(calc.click_dur, 50);
-    assert_eq!(calc.render_during_click, 50);
-    assert_eq!(calc.render_after_click, 100);
+    assert_eq!(calc.total_dur, 150.0);
+    assert_eq!(calc.click_dur, 50.0);
+    assert_eq!(calc.render_during_click, 50.0);
+    assert_eq!(calc.render_after_click, 100.0);
 
     let more_click_data = TraceData {
         cat: None,
@@ -497,10 +498,10 @@ pub fn calc_event_trace_is_correct() {
     };
 
     let calc = calc_event_trace(trace.clone());
-    assert_eq!(calc.total_dur, 75);
-    assert_eq!(calc.click_dur, 75);
-    assert_eq!(calc.render_during_click, 0);
-    assert_eq!(calc.render_after_click, 0);
+    assert_eq!(calc.total_dur, 75.0);
+    assert_eq!(calc.click_dur, 75.0);
+    assert_eq!(calc.render_during_click, 0.0);
+    assert_eq!(calc.render_after_click, 0.0);
     // Maybe all I really need to do is calulate the time from start click start to last composite layer?
     // Monitor other frameworks to try it out. Maybe other frameworks are doing alot of work in the browser if
     // There is multiple browser events layered on top of each other?

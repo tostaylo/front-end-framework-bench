@@ -11,14 +11,14 @@ interface Page extends puppeteer.Page {
 
 (async () => {
 	//could get args here
-	// const configArr = configArg ? config[config[configArg#] : configs]
-	// const metricArr = metricArg ? metric[metric[metricArg#] : metrics ]
+	// const configArr = configArg ? [config[config[configArg#]] : configs]
+	// const metricArr = metricArg ? [metric[metric[metricArg#]] : metrics ]
 	// const testToRun = iterationArg ? iterationArg# : 12;
 
 	for (const config of configs) {
 		console.warn(`starting new run for ${config.framework}`);
 		// try catch here
-		await manageDirsHtmlTraces(config, 16, metrics);
+		await manageDirsHtmlTraces(config, 2, metrics);
 	}
 	console.log('Finished running puppeteer benches');
 	// make sure this is needed
