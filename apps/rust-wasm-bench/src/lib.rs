@@ -1,6 +1,7 @@
 mod js;
 use wasm_bindgen::prelude::*;
 extern crate wee_alloc;
+use crate::js::log;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlElement;
 
@@ -80,26 +81,10 @@ pub fn main() -> Result<(), JsValue> {
 }
 
 fn create_table(rows: i32) -> Result<(), JsValue> {
+    log("create table");
     let window = web_sys::window().expect("no global `window` exists");
     let document = window.document().expect("should have a document on window");
     let old_table = document.query_selector("table")?;
-
-    let words = vec![
-        "There",
-        "High",
-        "Lizards",
-        "Sappy",
-        "Wreck",
-        "Fairly",
-        "Barking",
-        "Lurching",
-        "Carbs",
-        "Flat",
-        "Hard",
-        "Sad",
-        "Butterfly",
-        "Bandana",
-    ];
 
     match old_table {
         Some(x) => {
@@ -108,37 +93,61 @@ fn create_table(rows: i32) -> Result<(), JsValue> {
         None => (),
     }
 
-    let table = document.create_element("table")?;
-    let table_body = document.create_element("tbody")?;
+    if rows > 0 {
+        let words = vec![
+            "There",
+            "High",
+            "Lizards",
+            "Sappy",
+            "Wreck",
+            "Fairly",
+            "Barking",
+            "Lurching",
+            "Carbs",
+            "Flat",
+            "Hard",
+            "Sad",
+            "Butterfly",
+            "Bandana",
+        ];
+        let table = document.create_element("table")?;
+        let table_body = document.create_element("tbody")?;
 
-    for n in 0..rows {
-        let row = document.create_element("tr")?;
-        let data_1 = document.create_element("td")?;
-        let data_2 = document.create_element("td")?;
+        let root = document.get_element_by_id("main").unwrap();
+        table.append_child(&table_body)?;
+        root.append_child(&table)?;
 
-        // plus counter on both of these
-        let t = match n {
-            x if x > 14 => x,
-            x if x <= 14 => x + 14,
-            _ => 0,
-        };
-        let num = n + 1;
-        data_1.set_inner_html(&num.to_string());
-        data_2.set_inner_html(&format!(
-            "{} {} {}",
-            words[(t % 12) as usize],
-            words[(t % 13) as usize],
-            words[(t % 14) as usize]
-        ));
+        for n in 0..rows {
+            let row = document.create_element("tr")?;
+            let data_1 = document.create_element("td")?;
+            let data_2 = document.create_element("td")?;
 
-        row.append_child(&data_1)?;
-        row.append_child(&data_2)?;
-        table_body.append_child(&row)?;
+            // plus counter on both of these
+            let t = match n {
+                x if x > 14 => x,
+                x if x <= 14 => x + 14,
+                _ => 0,
+            };
+            let num = n + 1;
+            let number_node = document.create_text_node(&num.to_string());
+            let words_node = document.create_text_node(&format!(
+                "{} {} {}",
+                words[(t % 12) as usize],
+                words[(t % 13) as usize],
+                words[(t % 14) as usize]
+            ));
+
+            data_1.append_child(&number_node)?;
+            data_2.append_child(&words_node)?;
+
+            row.append_child(&data_1)?;
+            row.append_child(&data_2)?;
+            // This seems like it would be slower than just waiting to append to tbody after loop
+            let tbody = document.query_selector("tbody")?;
+            tbody.unwrap().append_child(&row)?;
+        }
     }
 
-    let root = document.get_element_by_id("main").unwrap();
-    table.append_child(&table_body)?;
-    root.append_child(&table)?;
     // counter += counter + 1;
     Ok(())
 }
