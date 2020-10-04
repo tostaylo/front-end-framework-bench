@@ -1,8 +1,6 @@
 mod js;
 use wasm_bindgen::prelude::*;
-extern crate console_error_panic_hook;
 extern crate wee_alloc;
-// use crate::js::log;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlElement;
 
@@ -13,8 +11,6 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 // Called when the wasm module is instantiated
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
-    console_error_panic_hook::set_once();
-
     let window = web_sys::window().expect("no global `window` exists");
     let document = window.document().expect("should have a document on window");
 
