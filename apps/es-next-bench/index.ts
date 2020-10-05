@@ -59,25 +59,27 @@ function createTable(rows: number) {
 	const oldTable = document.querySelector('table');
 	oldTable?.parentNode?.removeChild(oldTable);
 
-	const table = document.createElement('table');
-	const tableBody = document.createElement('tbody');
+	if (rows > 0) {
+		const table = document.createElement('table');
+		const tableBody = document.createElement('tbody');
 
-	for (let i = 0; i < rows; i++) {
-		const idx = i <= 14 ? i + 14 + counter : i + counter;
-		const row = document.createElement('tr');
-		const data1 = document.createElement('td');
-		const data2 = document.createElement('td');
+		for (let i = 0; i < rows; i++) {
+			const idx = i <= 14 ? i + 14 + counter : i + counter;
+			const row = document.createElement('tr');
+			const data1 = document.createElement('td');
+			const data2 = document.createElement('td');
 
-		data1.innerText = i.toString();
-		data2.innerText = `${words[idx % 12]} ${words[idx % 13]} ${words[idx % 14]}`;
+			data1.innerText = (1 + i).toString();
+			data2.innerText = `${words[idx % 12]} ${words[idx % 13]} ${words[idx % 14]}`;
 
-		row.appendChild(data1);
-		row.appendChild(data2);
-		tableBody.appendChild(row);
+			row.appendChild(data1);
+			row.appendChild(data2);
+			tableBody.appendChild(row);
+		}
+
+		const root = document.getElementById('main');
+		table.appendChild(tableBody);
+		root?.appendChild(table);
 	}
-
-	const root = document.getElementById('main');
-	table.appendChild(tableBody);
-	root?.appendChild(table);
 	counter += counter + 1;
 }

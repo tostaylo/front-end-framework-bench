@@ -50,21 +50,23 @@ function createTable(rows) {
     var _a;
     const oldTable = document.querySelector('table');
     (_a = oldTable === null || oldTable === void 0 ? void 0 : oldTable.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(oldTable);
-    const table = document.createElement('table');
-    const tableBody = document.createElement('tbody');
-    for (let i = 0; i < rows; i++) {
-        const idx = i <= 14 ? i + 14 + counter : i + counter;
-        const row = document.createElement('tr');
-        const data1 = document.createElement('td');
-        const data2 = document.createElement('td');
-        data1.innerText = i.toString();
-        data2.innerText = `${words[idx % 12]} ${words[idx % 13]} ${words[idx % 14]}`;
-        row.appendChild(data1);
-        row.appendChild(data2);
-        tableBody.appendChild(row);
+    if (rows > 0) {
+        const table = document.createElement('table');
+        const tableBody = document.createElement('tbody');
+        for (let i = 0; i < rows; i++) {
+            const idx = i <= 14 ? i + 14 + counter : i + counter;
+            const row = document.createElement('tr');
+            const data1 = document.createElement('td');
+            const data2 = document.createElement('td');
+            data1.innerText = (1 + i).toString();
+            data2.innerText = `${words[idx % 12]} ${words[idx % 13]} ${words[idx % 14]}`;
+            row.appendChild(data1);
+            row.appendChild(data2);
+            tableBody.appendChild(row);
+        }
+        const root = document.getElementById('main');
+        table.appendChild(tableBody);
+        root === null || root === void 0 ? void 0 : root.appendChild(table);
     }
-    const root = document.getElementById('main');
-    table.appendChild(tableBody);
-    root === null || root === void 0 ? void 0 : root.appendChild(table);
     counter += counter + 1;
 }

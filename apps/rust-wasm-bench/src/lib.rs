@@ -1,7 +1,7 @@
 mod js;
 use wasm_bindgen::prelude::*;
 extern crate wee_alloc;
-use crate::js::log;
+// use crate::js::log;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlElement;
 
@@ -81,7 +81,6 @@ pub fn main() -> Result<(), JsValue> {
 }
 
 fn create_table(rows: i32) -> Result<(), JsValue> {
-    log("create table");
     let window = web_sys::window().expect("no global `window` exists");
     let document = window.document().expect("should have a document on window");
     let old_table = document.query_selector("table")?;
@@ -113,10 +112,6 @@ fn create_table(rows: i32) -> Result<(), JsValue> {
         let table = document.create_element("table")?;
         let table_body = document.create_element("tbody")?;
 
-        let root = document.get_element_by_id("main").unwrap();
-        table.append_child(&table_body)?;
-        root.append_child(&table)?;
-
         for n in 0..rows {
             let row = document.create_element("tr")?;
             let data_1 = document.create_element("td")?;
@@ -142,10 +137,13 @@ fn create_table(rows: i32) -> Result<(), JsValue> {
 
             row.append_child(&data_1)?;
             row.append_child(&data_2)?;
-            // This seems like it would be slower than just waiting to append to tbody after loop
-            let tbody = document.query_selector("tbody")?;
-            tbody.unwrap().append_child(&row)?;
+
+            table_body.append_child(&row)?;
         }
+
+        let root = document.get_element_by_id("main").unwrap();
+        table.append_child(&table_body)?;
+        root.append_child(&table)?;
     }
 
     // counter += counter + 1;
