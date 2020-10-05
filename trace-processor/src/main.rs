@@ -76,6 +76,7 @@ fn main() {
     }
 
     for thrd in threads {
+        println!("{:?}", thrd.thread().id());
         match thrd.join() {
             Ok(x) => {
                 println!("Thread joined successfully {:?}", x);

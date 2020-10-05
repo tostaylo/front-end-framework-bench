@@ -17,11 +17,14 @@ interface Page extends puppeteer.Page {
 
 	for (const config of configs) {
 		console.warn(`starting new run for ${config.framework}`);
-		// try catch here
-		await manageDirsHtmlTraces(config, 2, metrics);
+		try {
+			await manageDirsHtmlTraces(config, 6, metrics);
+		} catch (err) {
+			console.warn(err);
+			process.exit(1);
+		}
 	}
 	console.log('Finished running puppeteer benches');
-	// make sure this is needed
 	process.exit(0);
 })();
 

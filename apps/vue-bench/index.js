@@ -55,12 +55,12 @@ const App = {
 };
 
 function mountApp() {
-	Vue.createApp(App).mount(`#root`);
+	new Vue({ render: (h) => h(App) }).$mount('#root');
 }
 
 const head = document.querySelector('head');
 const vueScript = document.createElement('script');
-vueScript.src = 'https://unpkg.com/vue@next';
+vueScript.src = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
 head?.appendChild(vueScript);
 
 vueScript.addEventListener('load', mountApp);
