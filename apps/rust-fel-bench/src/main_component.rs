@@ -42,7 +42,7 @@ impl rust_fel::Component for handle::Handle<Main> {
 
     fn render(&self) -> rust_fel::Element {
         let borrow = self.0.borrow_mut();
-        let mut child = borrow.child.clone();
+        let child = borrow.child.clone();
         let heading = rust_fel::html("<h1>rust-fel bench</h1>".to_owned());
 
         let mut clone = self.clone();
