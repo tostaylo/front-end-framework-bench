@@ -8,7 +8,9 @@ body {
 	background: black;
 }
 
-.main {
+/* first child instead of classname*/
+/* or just use body. one less div to worry about */
+body {
 	padding: 20px;
 	display: flex;
 	flex-direction: column;

@@ -3,5 +3,5 @@
 set -ex
 
 wasm-pack build --release --target web --out-name rust-fel-bench
-http
+# http
 # or could use python3 -m http.server
