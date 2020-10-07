@@ -58,8 +58,10 @@ function createTable(rows) {
             const row = document.createElement('tr');
             const data1 = document.createElement('td');
             const data2 = document.createElement('td');
-            data1.innerText = (1 + i).toString();
-            data2.innerText = `${words[idx % 12]} ${words[idx % 13]} ${words[idx % 14]}`;
+            const data1Text = document.createTextNode((1 + i).toString());
+            const data2Text = document.createTextNode(`${words[idx % 12]} ${words[idx % 13]} ${words[idx % 14]}`);
+            data1.appendChild(data1Text);
+            data2.appendChild(data2Text);
             row.appendChild(data1);
             row.appendChild(data2);
             tableBody.appendChild(row);

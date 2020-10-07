@@ -15,12 +15,6 @@ pub struct Table {
     words: Vec<String>,
 }
 
-// impl fmt::Debug for TableProps {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         write!(f, "{:#?} table props", self.rows)
-//     }
-// }
-
 impl Table {
     pub fn create() -> handle::Handle<Self> {
         let table = Table {
@@ -60,9 +54,7 @@ impl rust_fel::Component for handle::Handle<Table> {
         rust_fel::re_render(self.render(), Some(self.0.borrow().id.clone()));
     }
 
-    fn reduce_state(&mut self, _messaege: ()) {
-        ()
-    }
+    fn reduce_state(&mut self, _messaege: ()) {}
 
     fn render(&self) -> rust_fel::Element {
         let borrow = self.0.borrow_mut();

@@ -36,7 +36,7 @@ impl rust_fel::Component for handle::Handle<Main> {
         let mut child = self.0.borrow_mut().child.clone();
         child.add_props(TableProps {
             rows: message,
-            counter: self.0.borrow_mut().counter.clone(),
+            counter: self.0.borrow_mut().counter,
         })
     }
 

@@ -41,7 +41,7 @@ async function runTraces(config: Config, metrics: Metric[], iterations: number) 
 		for (let i = 1; i <= iterations; i++) {
 			await measureEvent(
 				metric.selector,
-				`${ROOT_DIR}${config.dirName}/${metric.dirName}/trace${i}.${metric.fileName}.${config.framework}.json`,
+				`${ROOT_DIR}${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
 				metric.selector2
 			);
 		}
