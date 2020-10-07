@@ -19,6 +19,23 @@ body {
 	min-height: 120vh;
 }
 
+/* root div */
+body div {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+}
+
+/* main div */
+body div div {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 70%;
+}
+
 header {
 	display: flex;
 	justify-content: space-evenly;
