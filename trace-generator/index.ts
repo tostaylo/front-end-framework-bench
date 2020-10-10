@@ -12,11 +12,11 @@ interface Page extends puppeteer.Page {
 
 (async () => {
 	// could get args here
-
+	const configArr = configs;
 	const metricArr = null || metrics;
-	const testsToRun = 1 || 11;
+	const testsToRun = 11;
 
-	for (const config of configs) {
+	for (const config of configArr) {
 		console.warn(`starting new run for ${config.framework}`);
 		try {
 			await manageDirsHtmlTraces(config, testsToRun, metricArr);
@@ -43,6 +43,7 @@ async function runTraces(config: Config, metrics: Metric[], iterations: number) 
 			await measureEvent(
 				metric.selector,
 				`${ROOT_DIR}${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
+				config.webComponent,
 				metric.selector2
 			);
 		}
@@ -63,7 +64,7 @@ function createHTML(config: Config) {
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Ctext%20x='0'%20y='14'%3E🦄%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
 	</head>
 	<body>
-		<div id="root"></div>
+		<div id="root">${config.webComponent}</div>
 		<script src="${config.src}" type="module">
 		</script>
 	</body>
@@ -74,7 +75,12 @@ function createHTML(config: Config) {
 	});
 }
 
-async function measureEvent(selector: string, path: string, selector2 = ''): Promise<void> {
+async function measureEvent(
+	selector: string,
+	path: string,
+	webComponent: Config['webComponent'],
+	selector2 = ''
+): Promise<void> {
 	try {
 		const browser = await puppeteer.launch({
 			headless: true,
@@ -88,21 +94,46 @@ async function measureEvent(selector: string, path: string, selector2 = ''): Pro
 		});
 
 		const page = await browser.newPage();
+
 		const navigationPromise = page.waitForNavigation();
 		await page.goto('http://localhost:80/');
 		await page.setViewport({ width: 1440, height: 714 });
 		await navigationPromise;
 		await (page as Page).waitForTimeout(2000);
-		await page.waitForSelector(selector);
-		await page.tracing.start({ path, screenshots: true });
-		await page.click(selector);
 
-		if (selector2) {
+		if (webComponent) {
+			const shadowSelector1 = await page.evaluateHandle(
+				`document.querySelector('main-component').shadowRoot.getElementById('${selector.split('#')[1]}')`
+			);
+
+			await page.tracing.start({ path, screenshots: true });
+			await ((shadowSelector1 as unknown) as any).click();
+
+			if (selector2) {
+				const shadowSelector2 = await page.evaluateHandle(
+					`document.querySelector('main-component').shadowRoot.getElementById('${selector2.split('#')[1]}')`
+				);
+
+				await (page as Page).waitForTimeout(3000);
+				// This method of clicking instead of page.click seems like it doesn't collect the whole trace
+				// Which is why i'm waiting for a timeout below
+				await ((shadowSelector2 as unknown) as any).click();
+			}
+
 			await (page as Page).waitForTimeout(3000);
-			await page.click(selector2);
+			await page.tracing.stop();
+		} else {
+			await page.waitForSelector(selector);
+			await page.tracing.start({ path, screenshots: true });
+			await page.click(selector);
+
+			if (selector2) {
+				await (page as Page).waitForTimeout(3000);
+				await page.click(selector2);
+			}
+			// Check verification element here. Count maybe.
+			await page.tracing.stop();
 		}
-		// Check verification element here. Count maybe.
-		await page.tracing.stop();
 
 		const metrics = await page.metrics();
 		// memory heap info here?

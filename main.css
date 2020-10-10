@@ -8,8 +8,6 @@ body {
 	background: black;
 }
 
-/* first child instead of classname*/
-/* or just use body. one less div to worry about */
 body {
 	padding: 20px;
 	display: flex;
@@ -19,8 +17,7 @@ body {
 	min-height: 120vh;
 }
 
-/* root div */
-body div {
+#root {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -28,8 +25,7 @@ body div {
 	width: 100%;
 }
 
-/* main div */
-body div div {
+.main {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -43,6 +39,7 @@ header {
 }
 
 table {
+	align-self: center;
 	border: 1px solid rgb(236, 235, 235);
 	border-collapse: collapse;
 	width: 300px;

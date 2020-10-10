@@ -18,7 +18,7 @@ body {
 	min-height: 120vh;
 }
 
-body div {
+#root {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -26,7 +26,7 @@ body div {
 	width: 100%;
 }
 
-body div div {
+.main {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -40,6 +40,7 @@ header {
 }
 
 table {
+  align-self: center;
 	border: 1px solid rgb(236, 235, 235);
 	border-collapse: collapse;
 	width: 300px;
