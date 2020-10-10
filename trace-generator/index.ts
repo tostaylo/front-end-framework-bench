@@ -1,5 +1,6 @@
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
+import css from './css.js';
 import { configs, Config } from './configs';
 import { metrics, Metric } from './metrics';
 
@@ -10,21 +11,21 @@ interface Page extends puppeteer.Page {
 }
 
 (async () => {
-	//could get args here
-	// const configArr = configArg ? [config[config[configArg#]] : configs]
-	// const metricArr = metricArg ? [metric[metric[metricArg#]] : metrics ]
-	// const testToRun = iterationArg ? iterationArg# : 12;
+	// could get args here
+
+	const metricArr = null || metrics;
+	const testsToRun = 1 || 11;
 
 	for (const config of configs) {
 		console.warn(`starting new run for ${config.framework}`);
 		try {
-			await manageDirsHtmlTraces(config, 6, metrics);
+			await manageDirsHtmlTraces(config, testsToRun, metricArr);
 		} catch (err) {
-			console.warn(err);
+			console.warn(err, "We've encountered a problem and will exit the process");
 			process.exit(1);
 		}
 	}
-	console.log('Finished running puppeteer benches');
+	console.log('Finished running puppeteer benches successfully');
 	process.exit(0);
 })();
 
@@ -54,12 +55,11 @@ function manageDirs(config: Config) {
 }
 
 function createHTML(config: Config) {
-	// Let's inline css
 	const html = `<html>
 	<head>
 		<title>${config.framework}</title>
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
-		<link rel="stylesheet" href="./main.css" />
+		<style>${css}</style>
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Ctext%20x='0'%20y='14'%3E🦄%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
 	</head>
 	<body>
@@ -101,12 +101,12 @@ async function measureEvent(selector: string, path: string, selector2 = ''): Pro
 			await (page as Page).waitForTimeout(3000);
 			await page.click(selector2);
 		}
-
+		// Check verification element here. Count maybe.
 		await page.tracing.stop();
 
-		// const metrics = await page.metrics();
+		const metrics = await page.metrics();
 		// memory heap info here?
-		console.info(selector, '  ', path, '  ', selector2, '  ');
+		console.info(selector, '  ', path, '  ', selector2, '  ', metrics);
 
 		await browser.close();
 	} catch (error) {

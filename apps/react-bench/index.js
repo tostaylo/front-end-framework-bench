@@ -32,7 +32,7 @@ function start() {
 		render() {
 			const { tableRows, counter, words } = this.state;
 
-			const h1 = React.createElement('h1', { key: 'h1' }, 'React-Bench');
+			const h1 = React.createElement('h1', { key: 'h1' }, 'react-bench');
 			const kButton = React.createElement(
 				'button',
 				{
