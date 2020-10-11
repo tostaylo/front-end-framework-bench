@@ -3,9 +3,10 @@
 	"version": "1.0.0",
 	"description": "Benchmarking Front End Interactions",
 	"main": "index.js",
+  "type": "module",
 	"scripts": {
 		"bench": "npm run tsc && node index.js",
-		"tsc": "tsc index.ts",
+		"tsc": "tsc",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "Torre Taylor",
