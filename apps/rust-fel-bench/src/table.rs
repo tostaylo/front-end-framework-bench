@@ -62,8 +62,9 @@ impl rust_fel::Component for handle::Handle<Table> {
         let mut el = None;
         let counter = borrow.props.counter;
 
+        let mut main_table = rust_fel::html(format!("<table |id={}|></table>", borrow.id.clone()));
+
         if rows > 0 {
-            let mut main_table = rust_fel::html("<table></table>".to_owned());
             let mut table_body = rust_fel::html("<tbody></tbody>".to_owned());
             let mut table_rows = vec![];
 
@@ -82,21 +83,15 @@ impl rust_fel::Component for handle::Handle<Table> {
                 )));
             }
             table_body.props.children = Some(table_rows);
-            main_table.props.children = Some(vec![table_body]);
-            el = Some(main_table);
+
+            el = Some(table_body);
         }
 
         let mut children = vec![];
         if let Some(x) = el {
             children.push(x);
         }
-        rust_fel::Element::new(
-            "div".to_owned(),
-            rust_fel::Props {
-                id: Some(borrow.id.clone()),
-                children: Some(children),
-                ..Default::default()
-            },
-        )
+        main_table.props.children = Some(children);
+        main_table
     }
 }
