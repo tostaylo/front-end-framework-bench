@@ -10,3 +10,4 @@ Frameworks tested include
 - Javascript (no framework)
 - rust-fel
 - rust-wasm (no framework)
+- Web Components
