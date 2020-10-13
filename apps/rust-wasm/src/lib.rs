@@ -1,4 +1,4 @@
-mod js;
+// mod js;
 use wasm_bindgen::prelude::*;
 extern crate wee_alloc;
 // use crate::js::log;

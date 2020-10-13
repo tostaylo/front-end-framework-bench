@@ -14,7 +14,7 @@ interface Page extends puppeteer.Page {
 	// could get args here
 	const configArr = configs;
 	const metricArr = null || metrics;
-	const testsToRun = 1 || 11;
+	const testsToRun = 3 || 11;
 
 	for (const config of configArr) {
 		console.warn(`starting new run for ${config.framework}`);
