@@ -1,13 +1,13 @@
 const WebC = `<main-component/>`;
 
-export type Config = { dirName: string; framework: string; src: string; webComponent?: typeof WebC };
+export type Config = { dirName: string; framework: string; src: string; webComponent?: typeof WebC | null };
 
 function createConfig(name: string, isWebComp: boolean): Config {
 	return {
 		dirName: name,
 		framework: name,
 		src: `./apps/${name}/index.js`,
-		webComponent: isWebComp ? WebC : undefined,
+		webComponent: isWebComp ? WebC : null,
 	};
 }
 

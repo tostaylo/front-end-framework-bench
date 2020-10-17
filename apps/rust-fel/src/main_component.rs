@@ -1,4 +1,5 @@
 use crate::handle;
+use crate::js::log;
 use crate::table::{Table, TableProps};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -25,22 +26,32 @@ impl Main {
 
 impl rust_fel::Component for handle::Handle<Main> {
     type Properties = ();
-    type Message = i32;
+    type Message = (i32, i32);
     type State = ();
 
     fn add_props(&mut self, _props: Self::Properties) {}
 
-    fn reduce_state(&mut self, message: i32) {
-        self.0.borrow_mut().state = message;
+    fn reduce_state(&mut self, message: Self::Message) {
+        log(&format!("{} {}", message.0, message.1));
+
+        self.0.borrow_mut().state = message.0;
         self.0.borrow_mut().counter += 1;
         let mut child = self.0.borrow_mut().child.clone();
+
+        let new_rows = match message.1 {
+            x if x > 0 => child.0.borrow().props.rows,
+            _ => message.0,
+        };
+
         child.add_props(TableProps {
-            rows: message,
+            rows: new_rows,
             counter: self.0.borrow_mut().counter,
+            update_rows: message.1,
         })
     }
 
     fn render(&self) -> rust_fel::Element {
+        log(&format!("from main render"));
         let borrow = self.0.borrow_mut();
         let child = borrow.child.clone();
         let heading = rust_fel::html("<h1>rust-fel bench</h1>".to_owned());
@@ -51,7 +62,7 @@ impl rust_fel::Component for handle::Handle<Main> {
             rust_fel::Props {
                 id: Some("create1000".to_owned()),
                 text: Some("Create 1K".to_owned()),
-                on_click: Some(Box::new(move || clone.reduce_state(1000))),
+                on_click: Some(Box::new(move || clone.reduce_state((1000, 0)))),
                 ..Default::default()
             },
         );
@@ -62,7 +73,7 @@ impl rust_fel::Component for handle::Handle<Main> {
             rust_fel::Props {
                 id: Some("create10000".to_owned()),
                 text: Some("Create 10K".to_owned()),
-                on_click: Some(Box::new(move || clone.reduce_state(10000))),
+                on_click: Some(Box::new(move || clone.reduce_state((10000, 0)))),
                 ..Default::default()
             },
         );
@@ -73,7 +84,18 @@ impl rust_fel::Component for handle::Handle<Main> {
             rust_fel::Props {
                 id: Some("clear".to_owned()),
                 text: Some("Clear".to_owned()),
-                on_click: Some(Box::new(move || clone.reduce_state(0))),
+                on_click: Some(Box::new(move || clone.reduce_state((0, 0)))),
+                ..Default::default()
+            },
+        );
+
+        let mut clone = self.clone();
+        let update_button = rust_fel::Element::new(
+            "button".to_owned(),
+            rust_fel::Props {
+                id: Some("update".to_owned()),
+                text: Some("Update".to_owned()),
+                on_click: Some(Box::new(move || clone.reduce_state((0, 10)))),
                 ..Default::default()
             },
         );
@@ -81,7 +103,13 @@ impl rust_fel::Component for handle::Handle<Main> {
         let header = rust_fel::Element::new(
             "header".to_owned(),
             rust_fel::Props {
-                children: Some(vec![heading, create_k_button, create_ten_k_button, clear]),
+                children: Some(vec![
+                    heading,
+                    create_k_button,
+                    create_ten_k_button,
+                    clear,
+                    update_button,
+                ]),
                 ..Default::default()
             },
         );

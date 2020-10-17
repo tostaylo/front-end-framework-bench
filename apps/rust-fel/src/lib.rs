@@ -1,4 +1,5 @@
 mod handle;
+mod js;
 mod main_component;
 mod table;
 use crate::main_component::Main;
