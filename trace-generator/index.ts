@@ -14,7 +14,7 @@ interface Page extends puppeteer.Page {
 	// could get args here
 	const configArr = configs;
 	const metricArr = null || metrics;
-	const testsToRun = 3 || 11;
+	const testsToRun = 1 || 11;
 
 	for (const config of configArr) {
 		console.warn(`starting new run for ${config.framework}`);
@@ -114,6 +114,12 @@ async function measureEvent(
 					`document.querySelector('main-component').shadowRoot.getElementById('${selector2.split('#')[1]}')`
 				);
 
+				const jsonVal = await shadowSelector2.jsonValue();
+				if (!jsonVal) {
+					// Don't record stats if we do not have the selector
+					return;
+				}
+
 				await (page as Page).waitForTimeout(3000);
 				// This method of clicking instead of page.click seems like it doesn't collect the whole trace
 				// Which is why i'm waiting for a timeout below
@@ -123,11 +129,12 @@ async function measureEvent(
 			await (page as Page).waitForTimeout(3000);
 			await page.tracing.stop();
 		} else {
-			await page.waitForSelector(selector);
+			await page.waitForSelector(selector, { timeout: 500 });
 			await page.tracing.start({ path, screenshots: true });
 			await page.click(selector);
 
 			if (selector2) {
+				await page.waitForSelector(selector2, { timeout: 500 });
 				await (page as Page).waitForTimeout(3000);
 				await page.click(selector2);
 			}
