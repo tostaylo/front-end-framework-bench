@@ -1,14 +1,13 @@
 mod handle;
-mod js;
 mod main_component;
 mod table;
 use crate::main_component::Main;
 use wasm_bindgen::prelude::*;
-extern crate wee_alloc;
+// extern crate wee_alloc;
 
 // Use `wee_alloc` as the global allocator.
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+// #[global_allocator]
+// static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 // Called when the wasm module is instantiated
 #[wasm_bindgen(start)]

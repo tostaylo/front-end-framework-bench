@@ -68,9 +68,9 @@ dependencies = [
 
 [[package]]
 name = "rust-fel"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc14c702608be35004e3106a7105656bbf43e13ad600e69b7d839830fd1e7bdd"
+checksum = "8e230c3ae7cf3857b7dd2e0351478081024f21516058e5f43ce63c124161c1e8"
 dependencies = [
  "wasm-bindgen",
  "web-sys",

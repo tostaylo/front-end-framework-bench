@@ -1,5 +1,4 @@
 use crate::handle;
-use crate::js::log;
 use crate::table::{Table, TableProps};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -32,8 +31,6 @@ impl rust_fel::Component for handle::Handle<Main> {
     fn add_props(&mut self, _props: Self::Properties) {}
 
     fn reduce_state(&mut self, message: Self::Message) {
-        log(&format!("{} {}", message.0, message.1));
-
         self.0.borrow_mut().state = message.0;
         self.0.borrow_mut().counter += 1;
         let mut child = self.0.borrow_mut().child.clone();
@@ -51,7 +48,6 @@ impl rust_fel::Component for handle::Handle<Main> {
     }
 
     fn render(&self) -> rust_fel::Element {
-        log(&format!("from main render"));
         let borrow = self.0.borrow_mut();
         let child = borrow.child.clone();
         let heading = rust_fel::html("<h1>rust-fel bench</h1>".to_owned());

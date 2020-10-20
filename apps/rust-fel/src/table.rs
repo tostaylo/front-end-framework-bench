@@ -1,5 +1,4 @@
 use crate::handle;
-use crate::js::log;
 use std::cell::RefCell;
 use std::rc::Rc;
 #[derive(Default, Clone, Debug)]
@@ -53,22 +52,17 @@ impl rust_fel::Component for handle::Handle<Table> {
 
     fn add_props(&mut self, props: Self::Properties) {
         self.0.borrow_mut().props = props.clone();
-        log(&format!("{:?}", props));
+
         if props.update_rows == 0 {
             rust_fel::re_render(self.render(), Some(self.0.borrow().id.clone()));
         } else {
             // I could make a table row component here and call add props on it which would then decide to re-render or not.
-            for num in 0..props.rows {
+            for num in 1..props.rows + 1 {
                 if num % props.update_rows == 0 {
-                    log(&format!("from inside add_props"));
-                    let id = format!("tr{}", num + 1);
+                    let id = format!("td{}", num);
                     // ALSO I DON"T HAVE TO REPLACE WHOLE ROW AS I CAN JUST REPLACE TABLE DATA
                     // THis forces the use of ID's everywhere
-                    let table_row = rust_fel::html(format!(
-                        "<tr |id={}| ><td>{}</td><td>We are updated</td></tr>",
-                        id,
-                        num + 1,
-                    ));
+                    let table_row = rust_fel::html(format!("<td |id={}|>We are updated</td>", id));
                     rust_fel::re_render(table_row, Some(id));
                 }
             }
@@ -78,7 +72,6 @@ impl rust_fel::Component for handle::Handle<Table> {
     fn reduce_state(&mut self, _messaege: ()) {}
 
     fn render(&self) -> rust_fel::Element {
-        log(&format!("from table render"));
         let borrow = self.0.borrow_mut();
         let rows = borrow.props.rows;
         let mut el = None;
@@ -90,7 +83,7 @@ impl rust_fel::Component for handle::Handle<Table> {
             let mut table_body = rust_fel::html("<tbody></tbody>".to_owned());
             let mut table_rows = vec![];
 
-            for num in 0..rows {
+            for num in 1..rows + 1 {
                 //use num here
                 let t = match table_rows.len() {
                     x if x > 14 => x + counter,
@@ -98,9 +91,9 @@ impl rust_fel::Component for handle::Handle<Table> {
                     _ => 0,
                 };
                 table_rows.push(rust_fel::html(format!(
-                    "<tr |id=tr{}| ><td>{}</td><td>{} {} {}</td></tr>",
-                    num + 1,
-                    num + 1,
+                    "<tr><td>{}</td><td |id=td{}|>{} {} {}</td></tr>",
+                    num,
+                    num,
                     borrow.words[t % 12],
                     borrow.words[t % 13],
                     borrow.words[t % 14],
