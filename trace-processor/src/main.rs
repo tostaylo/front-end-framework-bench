@@ -344,16 +344,16 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
         None => panic!("no click found "),
     };
 
-    let click_start_time = click.ts.unwrap();
-    let click_time_end = click_start_time + click.dur.unwrap();
+    let click_start_time = click.ts.unwrap_or_default();
+    let click_time_end = click_start_time + click.dur.unwrap_or_default();
 
     let entries_during_click: Vec<&TraceData> = entries
         .iter()
         .filter(|item| {
             if let Some(n) = item.name.clone() {
                 if is_render_event(&n)
-                    && item.ts.unwrap() >= click_start_time
-                    && item.ts.unwrap() <= click_time_end
+                    && item.ts.unwrap_or_default() >= click_start_time
+                    && item.ts.unwrap_or_default() <= click_time_end
                 {
                     return true;
                 }
@@ -364,13 +364,13 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
 
     let render_during_click = entries_during_click
         .iter()
-        .fold(0, |acc, x| acc + x.dur.unwrap());
+        .fold(0, |acc, x| acc + x.dur.unwrap_or_default());
 
     let entries_after_click: Vec<&TraceData> = entries
         .iter()
         .filter(|item| {
             if let Some(n) = item.name.clone() {
-                if is_render_event(&n) && item.ts.unwrap() > click_time_end {
+                if is_render_event(&n) && item.ts.unwrap_or_default() > click_time_end {
                     return true;
                 }
             }
@@ -380,9 +380,9 @@ fn calc_event_trace(trace: Trace) -> TraceFileTimings {
 
     let render_after_click = entries_after_click
         .iter()
-        .fold(0, |acc, x| acc + x.dur.unwrap());
+        .fold(0, |acc, x| acc + x.dur.unwrap_or_default());
 
-    let click_dur = click.dur.unwrap();
+    let click_dur = click.dur.unwrap_or_default();
     let total_dur = click_dur + render_after_click;
 
     TraceFileTimings {

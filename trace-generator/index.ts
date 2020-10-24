@@ -13,8 +13,8 @@ interface Page extends puppeteer.Page {
 (async () => {
 	// could get args here
 	const configArr = configs;
-	const metricArr = null || metrics;
-	const testsToRun = 1 || 11;
+	const metricArr = metrics;
+	const testsToRun = 6 || 11;
 
 	for (const config of configArr) {
 		console.warn(`starting new run for ${config.framework}`);
@@ -81,10 +81,12 @@ async function measureEvent(
 	webComponent: Config['webComponent'],
 	selector2 = ''
 ): Promise<void> {
+	let browser;
 	try {
-		const browser = await puppeteer.launch({
+		browser = await puppeteer.launch({
 			headless: true,
 			args: [
+				'--single-process',
 				'--incognito',
 				'--no-sandbox', // meh but better resource consumption
 				'--disable-setuid-sandbox',
@@ -117,10 +119,11 @@ async function measureEvent(
 				const jsonVal = await shadowSelector2.jsonValue();
 				if (!jsonVal) {
 					// Don't record stats if we do not have the selector
-					return;
+					throw new Error('ShadowSelector2 does not have a jsonValue');
 				}
 
 				await (page as Page).waitForTimeout(3000);
+
 				// This method of clicking instead of page.click seems like it doesn't collect the whole trace
 				// Which is why i'm waiting for a timeout below
 				await ((shadowSelector2 as unknown) as any).click();
@@ -149,6 +152,10 @@ async function measureEvent(
 		await browser.close();
 	} catch (error) {
 		console.error(error);
+		if (browser) {
+			console.log({ pid: browser.process().pid }, 'Trying to shutdown browser.');
+			await browser.close();
+		}
 		console.log('Moving on to the next test');
 	}
 }
