@@ -86,7 +86,6 @@ async function measureEvent(
 		browser = await puppeteer.launch({
 			headless: true,
 			args: [
-				'--single-process',
 				'--incognito',
 				'--no-sandbox', // meh but better resource consumption
 				'--disable-setuid-sandbox',

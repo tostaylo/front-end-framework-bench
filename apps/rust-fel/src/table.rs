@@ -60,8 +60,6 @@ impl rust_fel::Component for handle::Handle<Table> {
             for num in 1..props.rows + 1 {
                 if num % props.update_rows == 0 {
                     let id = format!("td{}", num);
-                    // ALSO I DON"T HAVE TO REPLACE WHOLE ROW AS I CAN JUST REPLACE TABLE DATA
-                    // THis forces the use of ID's everywhere
                     let table_row = rust_fel::html(format!("<td |id={}|>We are updated</td>", id));
                     rust_fel::re_render(table_row, Some(id));
                 }
