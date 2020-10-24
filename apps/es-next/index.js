@@ -61,16 +61,17 @@ let currentRows = 0;
 
 function clear() {
 	currentRows = 0;
-	document.querySelector('table')?.remove();
+	document.getElementById('table')?.remove();
 }
 
 function createTable(rows) {
 	currentRows = rows;
-	const oldTable = document.querySelector('table');
+	const oldTable = document.getElementById('table');
 	oldTable?.parentNode?.removeChild(oldTable);
 
 	if (rows > 0) {
 		const table = document.createElement('table');
+		table.id = 'table';
 		const tableBody = document.createElement('tbody');
 
 		for (let i = 1; i <= rows; i++) {
