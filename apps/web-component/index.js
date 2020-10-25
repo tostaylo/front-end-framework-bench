@@ -2,8 +2,8 @@ import styles from '../../trace-generator/css.js';
 
 class MainComponent extends HTMLElement {
 	constructor() {
-		// Always call super first in constructor
 		super();
+		this.rows = 0;
 		this.counter = 0;
 		this.words = [
 			'There',
@@ -21,8 +21,6 @@ class MainComponent extends HTMLElement {
 			'Butterfly',
 			'Bandana',
 		];
-
-		// write element functionality in here
 	}
 	connectedCallback() {
 		const shadow = this.attachShadow({ mode: 'open' });
@@ -40,44 +38,55 @@ class MainComponent extends HTMLElement {
 		const k_button = document.createElement('button');
 		k_button.id = 'create1000';
 		k_button.innerText = 'Create K';
+		k_button.addEventListener('click', () => this.createTable(1000));
 
 		const ten_k_button = document.createElement('button');
 		ten_k_button.id = 'create10000';
 		ten_k_button.innerText = 'Create 10K';
+		ten_k_button.addEventListener('click', () => this.createTable(10000));
 
 		const clear_button = document.createElement('button');
 		clear_button.id = 'clear';
 		clear_button.innerText = 'Clear';
-
-		k_button.addEventListener('click', () => this.createTable(1000));
-		ten_k_button.addEventListener('click', () => this.createTable(10000));
 		clear_button.addEventListener('click', () => {
-			shadow.querySelector('table')?.remove();
+			this.rows = 0;
+			shadow.getElementById('table')?.remove();
 		});
+
+		const update_button = document.createElement('button');
+		update_button.id = 'update';
+		update_button.innerText = 'Update';
+		update_button.addEventListener('click', this.updateTableData);
 
 		header.appendChild(h1);
 		header.appendChild(k_button);
 		header.appendChild(ten_k_button);
 		header.appendChild(clear_button);
+		header.appendChild(update_button);
 
 		shadow.appendChild(header);
 	}
 
-	createTable(rows) {
-		const oldTable = this.shadowRoot.querySelector('table');
+	createTable = (rows) => {
+		this.rows = rows;
+		this.counter += 1;
+
+		const oldTable = this.shadowRoot.getElementById('table');
 		oldTable?.parentNode?.removeChild(oldTable);
 
 		if (rows > 0) {
 			const table = document.createElement('table');
+			table.id = 'table';
 			const tableBody = document.createElement('tbody');
 
-			for (let i = 0; i < rows; i++) {
+			for (let i = 1; i <= rows; i++) {
 				const idx = i <= 14 ? i + 14 + this.counter : i + this.counter;
 				const row = document.createElement('tr');
 				const data1 = document.createElement('td');
 				const data2 = document.createElement('td');
+				data2.id = `td${i}`;
 
-				const data1Text = document.createTextNode((1 + i).toString());
+				const data1Text = document.createTextNode(i.toString());
 				const data2Text = document.createTextNode(
 					`${this.words[idx % 12]} ${this.words[idx % 13]} ${this.words[idx % 14]}`
 				);
@@ -92,8 +101,15 @@ class MainComponent extends HTMLElement {
 			table.appendChild(tableBody);
 			this.shadowRoot.appendChild(table);
 		}
-		this.counter += this.counter + 1;
-	}
+	};
+
+	updateTableData = () => {
+		for (let i = 1; i <= this.rows; i++) {
+			if (i % 10 === 0) {
+				this.shadowRoot.getElementById(`td${i}`).innerText = 'We are updated';
+			}
+		}
+	};
 }
 
 customElements.define('main-component', MainComponent);

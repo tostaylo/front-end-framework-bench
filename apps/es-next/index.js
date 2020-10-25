@@ -99,8 +99,7 @@ function createTable(rows) {
 }
 
 function updateTableData() {
-	let i;
-	for (i = 1; i <= currentRows; i++) {
+	for (let i = 1; i <= currentRows; i++) {
 		if (i % 10 === 0) {
 			document.getElementById(`td${i}`).innerText = 'We are updated';
 		}

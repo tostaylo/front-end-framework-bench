@@ -25,7 +25,7 @@ interface Page extends puppeteer.Page {
 			process.exit(1);
 		}
 	}
-	console.log('Finished running puppeteer benches successfully');
+	console.info('Finished running puppeteer benches successfully');
 	process.exit(0);
 })();
 
@@ -71,7 +71,7 @@ function createHTML(config: Config) {
 </html>
 `;
 	fs.writeFile('../index.html', html, function (err) {
-		if (err) return console.log(err);
+		if (err) return console.info(err);
 	});
 }
 
@@ -81,7 +81,9 @@ async function measureEvent(
 	webComponent: Config['webComponent'],
 	selector2 = ''
 ): Promise<void> {
+	console.info('starting run for', path, selector, selector2, webComponent);
 	let browser;
+
 	try {
 		browser = await puppeteer.launch({
 			headless: true,
@@ -139,22 +141,27 @@ async function measureEvent(
 				await page.waitForSelector(selector2, { timeout: 500 });
 				await (page as Page).waitForTimeout(3000);
 				await page.click(selector2);
+				await (page as Page).waitForTimeout(3000);
 			}
 			// Check verification element here. Count maybe.
+			// await page.evaluate(() => {
+			//   [...document.querySelectorAll('.elements button')].find(element => element.textContent === 'Button text').click();
+			// });
 			await page.tracing.stop();
 		}
 
 		const metrics = await page.metrics();
 		// memory heap info here?
-		console.info(selector, '  ', path, '  ', selector2, '  ', metrics);
+		console.info('successful run for', selector, '  ', path, '  ', selector2, '  ', metrics);
 
 		await browser.close();
 	} catch (error) {
 		console.error(error);
+
 		if (browser) {
-			console.log({ pid: browser.process().pid }, 'Trying to shutdown browser.');
+			console.info({ pid: browser.process().pid }, 'Trying to shutdown browser.');
 			await browser.close();
 		}
-		console.log('Moving on to the next test');
+		console.info('Moving on to the next test');
 	}
 }
