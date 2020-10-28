@@ -14,7 +14,7 @@ interface Page extends puppeteer.Page {
 	// could get args here
 	const configArr = configs;
 	const metricArr = metrics;
-	const testsToRun = 6 || 11;
+	const testsToRun = 5 || 11;
 
 	for (const config of configArr) {
 		console.warn(`starting new run for ${config.framework}`);
@@ -41,6 +41,7 @@ async function runTraces(config: Config, metrics: Metric[], iterations: number) 
 
 		for (let i = 1; i <= iterations; i++) {
 			await measureEvent(
+				metric.dirName,
 				metric.selector,
 				`${ROOT_DIR}${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
 				config.webComponent,
@@ -76,10 +77,11 @@ function createHTML(config: Config) {
 }
 
 async function measureEvent(
-	selector: string,
-	path: string,
+	metricName: Metric['dirName'],
+	selector: Metric['selector'],
+	path: Config['src'],
 	webComponent: Config['webComponent'],
-	selector2 = ''
+	selector2: Metric['selector2']
 ): Promise<void> {
 	console.info('starting run for', path, selector, selector2, webComponent);
 	let browser;
@@ -109,7 +111,7 @@ async function measureEvent(
 				`document.querySelector('main-component').shadowRoot.getElementById('${selector.split('#')[1]}')`
 			);
 
-			await page.tracing.start({ path, screenshots: true });
+			await page.tracing.start({ path, screenshots: false });
 			await ((shadowSelector1 as unknown) as any).click();
 
 			if (selector2) {
@@ -131,10 +133,13 @@ async function measureEvent(
 			}
 
 			await (page as Page).waitForTimeout(3000);
+			// if (!(await verifier[metricName](page as Page))) {
+			// 	throw new Error(`Unable to verify test was accurate for ${metricName}`);
+			// }
 			await page.tracing.stop();
 		} else {
 			await page.waitForSelector(selector, { timeout: 500 });
-			await page.tracing.start({ path, screenshots: true });
+			await page.tracing.start({ path, screenshots: false });
 			await page.click(selector);
 
 			if (selector2) {
@@ -143,16 +148,16 @@ async function measureEvent(
 				await page.click(selector2);
 				await (page as Page).waitForTimeout(3000);
 			}
-			// Check verification element here. Count maybe.
-			// await page.evaluate(() => {
-			//   [...document.querySelectorAll('.elements button')].find(element => element.textContent === 'Button text').click();
-			// });
+
+			if (!(await verifier[metricName](page as Page))) {
+				throw new Error(`Unable to verify test was accurate for ${metricName}`);
+			}
 			await page.tracing.stop();
 		}
 
-		const metrics = await page.metrics();
+		// const metrics = await page.metrics();
 		// memory heap info here?
-		console.info('successful run for', selector, '  ', path, '  ', selector2, '  ', metrics);
+		console.info('successful run for', selector, '  ', path, '  ', selector2);
 
 		await browser.close();
 	} catch (error) {
@@ -165,3 +170,61 @@ async function measureEvent(
 		console.info('Moving on to the next test');
 	}
 }
+
+const verifier = {
+	k: async function (page: Page) {
+		const td = await page.evaluate(async () => {
+			const td = document.querySelectorAll('td');
+			return [[...td].length, td[1998].textContent];
+		});
+		console.log('returning', td[1]);
+		return td[0] === 2000 && td[1] === '1000';
+	},
+
+	'ten-k': async function (page: Page) {
+		const td = await page.evaluate(async () => {
+			const td = document.querySelectorAll('td');
+			return [[...td].length, td[19998].textContent];
+		});
+		console.log('returning', td[1]);
+		return td[0] === 20000 && td[1] === '10000';
+	},
+
+	'clear-k': async function (page: Page) {
+		const td = await page.evaluate(async () => {
+			const td = document.querySelectorAll('td');
+
+			return td ? [...td].length : 0;
+		});
+
+		return td === 0;
+	},
+
+	'clear-ten-k': async function (page: Page) {
+		const td = await page.evaluate(async () => {
+			const td = document.querySelectorAll('td');
+
+			return td ? [...td].length : 0;
+		});
+
+		return td === 0;
+	},
+
+	'update-k': async function (page: Page) {
+		await page.evaluate(() => {
+			const td = [...document.querySelectorAll('td')].length;
+			console.log(td, 'td');
+		});
+		console.log('returning');
+		return true;
+	},
+
+	'update-ten-k': async function (page: Page) {
+		await page.evaluate(() => {
+			const td = [...document.querySelectorAll('td')].length;
+			console.log(td, 'td');
+		});
+		console.log('returning');
+		return true;
+	},
+};

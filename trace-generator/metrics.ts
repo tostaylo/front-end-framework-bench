@@ -1,4 +1,9 @@
-export type Metric = { fileName: string; dirName: string; selector: string; selector2?: string };
+export type Metric = {
+	fileName: string;
+	dirName: 'k' | 'ten-k' | 'clear-k' | 'clear-ten-k' | 'update-k' | 'update-ten-k';
+	selector: string;
+	selector2?: string;
+};
 
 export const metrics: Metric[] = [
 	{ fileName: 'k', dirName: 'k', selector: 'button#create1000' },
