@@ -30,7 +30,7 @@ let currentRows = 0;
 	main.appendChild(header);
 
 	const h1 = document.createElement('h1');
-	h1.innerText = 'es-next-bench';
+	h1.innerText = 'javascript-bench';
 
 	const k_button = document.createElement('button');
 	k_button.id = 'create1000';

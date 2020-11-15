@@ -18,7 +18,10 @@ use std::thread;
 struct TimingResult {
     timing_type: String,
     timing_framework: String,
-    final_timing: TraceFileTimings,
+    total_dur: f64,
+    click_dur: f64,
+    render_during_click: f64,
+    render_after_click: f64,
 }
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 struct TraceFileTimings {
@@ -99,12 +102,7 @@ fn main() {
 }
 
 fn sort_timing_results(timing_results: &mut Vec<TimingResult>) {
-    timing_results.sort_by(|a, b| {
-        a.final_timing
-            .total_dur
-            .partial_cmp(&b.final_timing.total_dur)
-            .unwrap()
-    })
+    timing_results.sort_by(|a, b| a.total_dur.partial_cmp(&b.total_dur).unwrap())
 }
 
 fn process_trace_directories(framework_directories: Vec<DirEntry>) -> Vec<TimingResult> {
@@ -191,10 +189,10 @@ fn make_tables(trace_timing_results: &[TimingResult]) -> Table {
         full_table.add_row(row![
             result.timing_framework,
             result.timing_type,
-            result.final_timing.click_dur.to_string(),
-            result.final_timing.render_during_click.to_string(),
-            result.final_timing.render_after_click.to_string(),
-            result.final_timing.total_dur.to_string(),
+            result.click_dur.to_string(),
+            result.render_during_click.to_string(),
+            result.render_after_click.to_string(),
+            result.total_dur.to_string(),
         ]);
 
         match map.entry(result.timing_type.clone()) {
@@ -204,10 +202,10 @@ fn make_tables(trace_timing_results: &[TimingResult]) -> Table {
                 table.add_row(row![
                     result.timing_framework,
                     result.timing_type,
-                    result.final_timing.click_dur.to_string(),
-                    result.final_timing.render_during_click.to_string(),
-                    result.final_timing.render_after_click.to_string(),
-                    result.final_timing.total_dur.to_string(),
+                    result.click_dur.to_string(),
+                    result.render_during_click.to_string(),
+                    result.render_after_click.to_string(),
+                    result.total_dur.to_string(),
                 ]);
                 e.insert(table);
             }
@@ -215,10 +213,10 @@ fn make_tables(trace_timing_results: &[TimingResult]) -> Table {
                 e.get_mut().add_row(row![
                     result.timing_framework,
                     result.timing_type,
-                    result.final_timing.click_dur.to_string(),
-                    result.final_timing.render_during_click.to_string(),
-                    result.final_timing.render_after_click.to_string(),
-                    result.final_timing.total_dur.to_string(),
+                    result.click_dur.to_string(),
+                    result.render_during_click.to_string(),
+                    result.render_after_click.to_string(),
+                    result.total_dur.to_string(),
                 ]);
             }
         }
@@ -240,12 +238,10 @@ fn get_trace_timing_result(
         return TimingResult {
             timing_type: format!("No timing found for {:?}", timing_type),
             timing_framework,
-            final_timing: TraceFileTimings {
-                total_dur: 0.0,
-                click_dur: 0.0,
-                render_during_click: 0.0,
-                render_after_click: 0.0,
-            },
+            total_dur: 0.0,
+            click_dur: 0.0,
+            render_during_click: 0.0,
+            render_after_click: 0.0,
         };
     }
     timings.sort_by(|a, b| a.total_dur.partial_cmp(&b.total_dur).unwrap());
@@ -269,17 +265,13 @@ fn get_trace_timing_result(
     let divisor = timings.len() as f64;
     let convert_ms = 1000.0;
 
-    let final_timing = TraceFileTimings {
+    TimingResult {
+        timing_type,
+        timing_framework,
         total_dur: k_trace_timing_total.total_dur / divisor / convert_ms,
         click_dur: k_trace_timing_total.click_dur / divisor / convert_ms,
         render_during_click: k_trace_timing_total.render_during_click / divisor / convert_ms,
         render_after_click: k_trace_timing_total.render_after_click / divisor / convert_ms,
-    };
-
-    TimingResult {
-        timing_type,
-        timing_framework,
-        final_timing,
     }
 }
 

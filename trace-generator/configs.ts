@@ -17,5 +17,5 @@ export const configs: Config[] = [
 	createConfig('rust-fel', false),
 	createConfig('react', false),
 	createConfig('vue', false),
-	createConfig('es-next', false),
+	createConfig('javascript', false),
 ];
