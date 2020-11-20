@@ -83,7 +83,7 @@ async function measureEvent(
 	webComponent: Config['webComponent'],
 	selector2: Metric['selector2']
 ): Promise<void> {
-	console.info('starting run for', path, selector, selector2, webComponent);
+	console.info('starting run for', { path, selector, selector2, webComponent });
 	let browser;
 
 	try {
@@ -158,7 +158,7 @@ async function measureEvent(
 
 		// const metrics = await page.metrics();
 		// memory heap info here?
-		console.info('successful run for', selector, '  ', path, '  ', selector2);
+		console.info('successful run for', { selector, path, selector2 });
 
 		await browser.close();
 	} catch (error) {
@@ -178,8 +178,9 @@ const verifier = {
 			const td = document.querySelectorAll('td');
 			return [[...td].length, td[1998].textContent];
 		});
-		console.log('returning', td[1]);
-		return td[0] === 2000 && td[1] === '1000';
+		const result = td[0] === 2000 && td[1] === '1000';
+		console.log('Test for k', result);
+		return result;
 	},
 
 	'ten-k': async function (page: Page) {
@@ -187,8 +188,10 @@ const verifier = {
 			const td = document.querySelectorAll('td');
 			return [[...td].length, td[19998].textContent];
 		});
-		console.log('returning', td[1]);
-		return td[0] === 20000 && td[1] === '10000';
+
+		const result = td[0] === 20000 && td[1] === '10000';
+		console.log('Test for ten-k', result);
+		return result;
 	},
 
 	'clear-k': async function (page: Page) {
@@ -198,34 +201,38 @@ const verifier = {
 			return td ? [...td].length : 0;
 		});
 
-		return td === 0;
+		const result = td === 0;
+		console.log('Test for clear-k', result);
+		return result;
 	},
 
 	'clear-ten-k': async function (page: Page) {
 		const td = await page.evaluate(async () => {
 			const td = document.querySelectorAll('td');
-
 			return td ? [...td].length : 0;
 		});
-
-		return td === 0;
+		const result = td === 0;
+		console.log('Test for clear-ten-k', result);
+		return result;
 	},
 
 	'update-k': async function (page: Page) {
-		await page.evaluate(() => {
-			const td = [...document.querySelectorAll('td')].length;
-			console.log(td, 'td');
+		const td: [number, string] = await page.evaluate(async () => {
+			const td = document.querySelectorAll('td');
+			return [[...td].length, td[1999].textContent] as [number, string];
 		});
-		console.log('returning');
-		return true;
+		const result = td[0] === 2000 && td[1]?.toLowerCase() === 'we are updated';
+		console.log('Test for update-k', result);
+		return result;
 	},
 
 	'update-ten-k': async function (page: Page) {
-		await page.evaluate(() => {
-			const td = [...document.querySelectorAll('td')].length;
-			console.log(td, 'td');
+		const td: [number, string] = await page.evaluate(async () => {
+			const td = document.querySelectorAll('td');
+			return [[...td].length, td[19999].textContent] as [number, string];
 		});
-		console.log('returning');
-		return true;
+		const result = td[0] === 20000 && td[1]?.toLowerCase() === 'we are updated';
+		console.log('Test for update-ten-k', result);
+		return result;
 	},
 };

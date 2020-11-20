@@ -160,14 +160,14 @@ fn process_trace_directories(framework_directories: Vec<DirEntry>) -> Vec<Timing
 }
 
 fn create_csv_file(trace_timing_results: &[TimingResult]) {
-    let out = File::create("trace_results.txt").expect("file couldn't be created");
+    let out = File::create("../trace_results/trace_results.txt").expect("file couldn't be created");
     make_tables(trace_timing_results)
         .to_csv(out)
         .expect("could not write to file");
 }
 
 fn create_json_file(trace_timing_results: &[TimingResult]) {
-    let writer = BufWriter::new(File::create("trace_results.json").unwrap());
+    let writer = BufWriter::new(File::create("../trace_results/trace_results.json").unwrap());
     serde_json::to_writer_pretty(writer, &trace_timing_results).unwrap();
 }
 
