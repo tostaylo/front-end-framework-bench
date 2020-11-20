@@ -14,7 +14,7 @@ interface Page extends puppeteer.Page {
 	// could get args here
 	const configArr = configs;
 	const metricArr = metrics;
-	const testsToRun = 8 || 11;
+	const testsToRun = 1 || 11;
 
 	for (const config of configArr) {
 		console.warn(`starting new run for ${config.framework}`);
@@ -99,7 +99,8 @@ async function measureEvent(
 		});
 
 		const page = await browser.newPage();
-
+		const version = await page.browser().version();
+		console.log(version);
 		const navigationPromise = page.waitForNavigation();
 		await page.goto('http://localhost:80/');
 		await page.setViewport({ width: 1440, height: 714 });
