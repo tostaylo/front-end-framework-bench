@@ -12,6 +12,7 @@ function createConfig(name: string, isWebComp: boolean): Config {
 }
 
 export const configs: Config[] = [
+	createConfig('svelte', false),
 	createConfig('web-component', true),
 	createConfig('rust-wasm', false),
 	createConfig('rust-fel', false),
