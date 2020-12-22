@@ -62,40 +62,46 @@ fn main() {
     let start = Instant::now();
     println!("Starting Trace Processing");
 
-    let (tx, rx) = mpsc::channel();
+    let throttle_directories = fs::read_dir("../traces/".to_owned()).unwrap();
 
-    let framework_directories = fs::read_dir("../traces/".to_owned()).unwrap();
-    let mut threads = vec![];
+    for t_dir in throttle_directories {
+        let (tx, rx) = mpsc::channel();
+        let mut threads = vec![];
+        let throttle_dir = t_dir.expect("Couldn't read directory");
+        let framework_directories = fs::read_dir(throttle_dir.path()).unwrap();
 
-    for directory in framework_directories {
-        let tx1 = mpsc::Sender::clone(&tx);
-        let thrd = thread::spawn(move || {
-            println!("{:?} Starting new thread on a new directory", directory);
-            let val =
-                process_trace_directories(vec![directory.expect("The directory is not found")]);
-            tx1.send(val).unwrap();
-        });
-        threads.push(thrd);
-    }
+        for f_dir in framework_directories {
+            let tx1 = mpsc::Sender::clone(&tx);
+            let thrd = thread::spawn(move || {
+                println!("{:?} Starting new thread on a new directory", f_dir);
+                let val =
+                    process_trace_directories(vec![f_dir.expect("The directory is not found")]);
+                tx1.send(val).unwrap();
+            });
+            threads.push(thrd);
+        }
 
-    for thrd in threads {
-        println!("{:?}", thrd.thread().id());
-        match thrd.join() {
-            Ok(x) => {
-                println!("Thread joined successfully {:?}", x);
-            }
-            Err(x) => {
-                println!("Thread join failure {:?}", x);
+        for thrd in threads {
+            println!("{:?}", thrd.thread().id());
+            match thrd.join() {
+                Ok(x) => {
+                    println!("Thread joined successfully {:?}", x);
+                }
+                Err(x) => {
+                    println!("Thread join failure {:?}", x);
+                }
             }
         }
+        drop(tx);
+
+        let mut timing_results: Vec<TimingResult> = rx.iter().flatten().collect();
+        sort_timing_results(&mut timing_results);
+
+        let throttle_dir_name = throttle_dir.file_name();
+        let throttle_dir_name_str = throttle_dir_name.to_str().unwrap();
+        create_csv_file(&timing_results, throttle_dir_name_str);
+        create_json_file(&timing_results, throttle_dir_name_str);
     }
-    drop(tx);
-
-    let mut timing_results: Vec<TimingResult> = rx.iter().flatten().collect();
-    sort_timing_results(&mut timing_results);
-
-    create_csv_file(&timing_results);
-    create_json_file(&timing_results);
 
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
@@ -159,15 +165,25 @@ fn process_trace_directories(framework_directories: Vec<DirEntry>) -> Vec<Timing
     trace_timing_results_per_framework
 }
 
-fn create_csv_file(trace_timing_results: &[TimingResult]) {
-    let out = File::create("../trace-results/trace-results.txt").expect("file couldn't be created");
+fn create_csv_file(trace_timing_results: &[TimingResult], throttle_type: &str) {
+    let out = File::create(format!(
+        "../trace-results/trace-results.{}.txt",
+        throttle_type,
+    ))
+    .expect("file couldn't be created");
     make_tables(trace_timing_results)
         .to_csv(out)
         .expect("could not write to file");
 }
 
-fn create_json_file(trace_timing_results: &[TimingResult]) {
-    let writer = BufWriter::new(File::create("../trace-results/trace-results.json").unwrap());
+fn create_json_file(trace_timing_results: &[TimingResult], throttle_type: &str) {
+    let writer = BufWriter::new(
+        File::create(format!(
+            "../trace-results/trace-results.{}.json",
+            throttle_type,
+        ))
+        .unwrap(),
+    );
     serde_json::to_writer_pretty(writer, &trace_timing_results).unwrap();
 }
 

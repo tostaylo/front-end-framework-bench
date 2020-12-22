@@ -6,6 +6,10 @@ import { metrics, Metric } from './metrics.js';
 
 const ROOT_DIR = '../traces/';
 
+enum ThrottleSetting {
+	NO_THROTTLE = 'no-throttle',
+	THROTTLE_4X = 'throttle-4x',
+}
 interface Page extends puppeteer.Page {
 	waitForTimeout: (num: number) => Promise<void>;
 }
@@ -14,36 +18,49 @@ interface Page extends puppeteer.Page {
 	// could get args here
 	const configArr = configs;
 	const metricArr = metrics;
-	const testsToRun = 1 || 11;
+	const testsToRun = 1;
 
-	for (const config of configArr) {
-		console.warn(`starting new run for ${config.framework}`);
-		try {
-			await manageDirsHtmlTraces(config, testsToRun, metricArr);
-		} catch (err) {
-			console.warn(err, "We've encountered a problem and will exit the process");
-			process.exit(1);
+	for (const throttleSetting in ThrottleSetting) {
+		for (const config of configArr) {
+			console.warn(`starting new run for ${config.framework}`);
+			try {
+				await manageDirsHtmlTraces(
+					config,
+					testsToRun,
+					metricArr,
+					ThrottleSetting[throttleSetting as keyof typeof ThrottleSetting]
+				);
+			} catch (err) {
+				console.warn(err, "We've encountered a problem and will exit the process");
+				process.exit(1);
+			}
 		}
 	}
 	console.info('Finished running puppeteer benches successfully');
 	process.exit(0);
 })();
 
-async function manageDirsHtmlTraces(config: Config, iterations: number, metrics: Metric[]) {
-	manageDirs(config);
+async function manageDirsHtmlTraces(
+	config: Config,
+	iterations: number,
+	metrics: Metric[],
+	throttleSetting: ThrottleSetting
+) {
+	manageDirs(`${throttleSetting}/${config.dirName}`);
 	createHTML(config);
-	await runTraces(config, metrics, iterations);
+	await runTraces(config, metrics, iterations, throttleSetting);
 }
 
-async function runTraces(config: Config, metrics: Metric[], iterations: number) {
+async function runTraces(config: Config, metrics: Metric[], iterations: number, throttleSetting: ThrottleSetting) {
 	for (const metric of metrics) {
-		fs.mkdirSync(`${ROOT_DIR}${config.dirName}/${metric.dirName}`, { recursive: true });
+		fs.mkdirSync(`${ROOT_DIR}${throttleSetting}/${config.dirName}/${metric.dirName}`, { recursive: true });
 
 		for (let i = 1; i <= iterations; i++) {
 			await measureEvent(
 				metric.dirName,
 				metric.selector,
-				`${ROOT_DIR}${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
+				`${ROOT_DIR}${throttleSetting}/${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
+				throttleSetting,
 				config.webComponent,
 				metric.selector2
 			);
@@ -51,9 +68,9 @@ async function runTraces(config: Config, metrics: Metric[], iterations: number) 
 	}
 }
 
-function manageDirs(config: Config) {
-	fs.rmdirSync(`${ROOT_DIR}${config.dirName}`, { recursive: true });
-	fs.mkdirSync(`${ROOT_DIR}${config.dirName}`, { recursive: true });
+function manageDirs(path: string) {
+	fs.rmdirSync(`${ROOT_DIR}${path}`, { recursive: true });
+	fs.mkdirSync(`${ROOT_DIR}${path}`, { recursive: true });
 }
 
 function createHTML(config: Config) {
@@ -80,6 +97,7 @@ async function measureEvent(
 	metricName: Metric['dirName'],
 	selector: Metric['selector'],
 	path: Config['src'],
+	throttleSetting: ThrottleSetting,
 	webComponent: Config['webComponent'],
 	selector2: Metric['selector2']
 ): Promise<void> {
@@ -99,8 +117,24 @@ async function measureEvent(
 		});
 
 		const page = await browser.newPage();
+		if (throttleSetting === ThrottleSetting.THROTTLE_4X) {
+			// Connect to Chrome DevTools
+			const client = await page.target().createCDPSession();
+
+			// Set Network Throttling property
+			// await client.send('Network.emulateNetworkConditions', {
+			// 	offline: false,
+			// 	downloadThroughput: (200 * 1024) / 8,
+			// 	uploadThroughput: (200 * 1024) / 8,
+			// 	latency: 20,
+			// });
+
+			// Set Network CPU Throttling property
+			await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+		}
+
 		const version = await page.browser().version();
-		console.log(version);
+
 		const navigationPromise = page.waitForNavigation();
 		await page.goto('http://localhost:80/');
 		await page.setViewport({ width: 1440, height: 714 });
@@ -134,6 +168,7 @@ async function measureEvent(
 			}
 
 			await (page as Page).waitForTimeout(3000);
+			// Verification for Web Component is not implemented
 			// if (!(await verifier[metricName](page as Page))) {
 			// 	throw new Error(`Unable to verify test was accurate for ${metricName}`);
 			// }
