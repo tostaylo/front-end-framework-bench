@@ -16,8 +16,8 @@ interface Page extends puppeteer.Page {
 
 (async () => {
 	// could get args here
-	const configArr = configs;
-	const metricArr = metrics;
+	const configArr = configs.slice(2, 3);
+	const metricArr = metrics.slice(2, 3);
 	const testsToRun = 1;
 
 	for (const throttleSetting in ThrottleSetting) {
