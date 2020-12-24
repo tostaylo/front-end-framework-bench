@@ -10,7 +10,7 @@ kill -KILL $server_pid
 cd ../trace-processor 
 cargo run &&
 cd ../trace-results &&
-cp trace-results.no-throttle.json trace-results.throttle-4x.json /Users/torre/Dev/e28/p3/public
+cp trace-results.no-throttle.json trace-results.throttle-4x.json /Users/torre/Dev/front-end-framework-bench-landing/public
 
 # no output in console
 # &>/dev/null
