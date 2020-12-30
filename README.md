@@ -31,6 +31,8 @@ Front-End Framework Bench was inspired by [JS-Framework-Bench](https://github.co
 - Rust-fel
 - Rust-wasm (no framework)
 - Web Components
+- Svelte
+
 
 ### Requirements to run Front-End Framework Bench Locally
 
