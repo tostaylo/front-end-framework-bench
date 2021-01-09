@@ -2,6 +2,9 @@
 
 Welcome to the project landing page for [Front-End Framework Bench](https://github.com/tostaylo/front-end-framework-bench), an automated testing suite focused on comparing performance of client-side frameworks. The project utilizes [Puppeteer](https://github.com/puppeteer/puppeteer) to simulate user input (mouse clicks for example) and [Google Chrome Developer Tools Performance Timeline](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference) traces to analyze and record timings of the interaction.
 
+## Landing Page 
+https://front-end-framework-bench.torretaylor.me/
+
 ## Methodology
 
 I'll be the first to admit these tests will not hold up to scientific scrutiny. For one, I wrote the app for each framework being tested, and I'm no expert with any of them. There are at least two concerns. One is utilizing each framework to maximize performance. The other being the most desired idiomatic representation of the specific framework's code. I addressed neither concern. Instead, I built each app to be as similar as possible with a minimalist approach.
