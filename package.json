@@ -1,0 +1,23 @@
+{
+	"name": "front-end-framework-bench",
+	"version": "0.0.1",
+	"description": "A front end framework performance testing application",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"serve": "http-server --port 80"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/tostaylo/front-end-framework-bench.git"
+	},
+	"author": "Torre Taylor",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/tostaylo/front-end-framework-bench/issues"
+	},
+	"homepage": "https://github.com/tostaylo/front-end-framework-bench#readme",
+	"dependencies": {
+		"http-server": "^0.12.3"
+	}
+}

@@ -5,6 +5,7 @@ import { configs, Config } from './configs.js';
 import { metrics, Metric } from './metrics.js';
 
 const ROOT_DIR = '../traces/';
+let CHROME_VERSION = '';
 
 enum ThrottleSetting {
 	NO_THROTTLE = 'no-throttle',
@@ -18,7 +19,7 @@ interface Page extends puppeteer.Page {
 	// could get args here
 	const configArr = configs;
 	const metricArr = metrics;
-	const testsToRun = 3;
+	const testsToRun = 12;
 
 	for (const throttleSetting in ThrottleSetting) {
 		for (const config of configArr) {
@@ -35,6 +36,19 @@ interface Page extends puppeteer.Page {
 				process.exit(1);
 			}
 		}
+	}
+
+	try {
+		const path = '../trace-results/meta.json';
+		const date = new Date();
+		const old_chrome_version = JSON.parse(fs.readFileSync(path, 'utf8')).chrome_version;
+		console.warn(old_chrome_version);
+		if (old_chrome_version != CHROME_VERSION) {
+			throw new Error('Chrome version has changed');
+		}
+		fs.writeFileSync(path, JSON.stringify({ date, chrome_version: CHROME_VERSION }));
+	} catch (err) {
+		console.error(err);
 	}
 	console.info('Finished running puppeteer benches successfully');
 	process.exit(0);
@@ -133,7 +147,9 @@ async function measureEvent(
 			await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 		}
 
-		const version = await page.browser().version();
+		if (!CHROME_VERSION) {
+			CHROME_VERSION = await page.browser().version();
+		}
 
 		const navigationPromise = page.waitForNavigation();
 		await page.goto('http://localhost:80/');
@@ -208,24 +224,24 @@ async function measureEvent(
 }
 
 const verifier = {
-	k: async function (page: Page) {
+	'create-k': async function (page: Page) {
 		const td = await page.evaluate(async () => {
 			const td = document.querySelectorAll('td');
 			return [[...td].length, td[1998].textContent];
 		});
 		const result = td[0] === 2000 && td[1] === '1000';
-		console.log('Test for k', result);
+		console.log('Test for create-k', result);
 		return result;
 	},
 
-	'ten-k': async function (page: Page) {
+	'create-ten-k': async function (page: Page) {
 		const td = await page.evaluate(async () => {
 			const td = document.querySelectorAll('td');
 			return [[...td].length, td[19998].textContent];
 		});
 
 		const result = td[0] === 20000 && td[1] === '10000';
-		console.log('Test for ten-k', result);
+		console.log('Test for create-ten-k', result);
 		return result;
 	},
 
