@@ -1,7 +1,2 @@
 node_modules
-metrics.js
-index.js
-configs.js
-css.js
-measureEvent.js
-manageFiles.js
+scripts/*.js

@@ -3,7 +3,9 @@ import { metrics, Metric } from './metrics.js';
 import { measureEvent } from './measureEvent.js';
 import { manageDirs, createHTML, writeMetaFile, makeDir } from './manageFiles.js';
 
-const ROOT_DIR = '../traces/';
+const ROOT_DIR = '../../';
+const TRACE_DIR = `${ROOT_DIR}traces/`;
+
 let CHROME_VERSION = '';
 
 (async () => {
@@ -29,7 +31,7 @@ let CHROME_VERSION = '';
 		}
 	}
 
-	writeMetaFile(CHROME_VERSION);
+	writeMetaFile(CHROME_VERSION, ROOT_DIR);
 
 	console.info('Finished running puppeteer benches successfully');
 	process.exit(0);
@@ -41,20 +43,20 @@ async function manageDirsHtmlTraces(
 	metrics: Metric[],
 	throttleSetting: ThrottleSetting
 ) {
-	manageDirs(`${throttleSetting}/${config.dirName}`, ROOT_DIR);
-	createHTML(config);
+	manageDirs(`${throttleSetting}/${config.dirName}`, TRACE_DIR);
+	createHTML(config, ROOT_DIR);
 	await runTraces(config, metrics, iterations, throttleSetting);
 }
 
 async function runTraces(config: Config, metrics: Metric[], iterations: number, throttleSetting: ThrottleSetting) {
 	for (const metric of metrics) {
-		makeDir(throttleSetting, config.dirName, metric.dirName, ROOT_DIR);
+		makeDir(throttleSetting, config.dirName, metric.dirName, TRACE_DIR);
 
 		for (let i = 1; i <= iterations; i++) {
 			const trace = await measureEvent(
 				metric.dirName,
 				metric.selector,
-				`${ROOT_DIR}${throttleSetting}/${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
+				`${TRACE_DIR}${throttleSetting}/${config.dirName}/${metric.dirName}/${config.framework}.${metric.fileName}.${i}.json`,
 				throttleSetting,
 				config.webComponent,
 				metric.selector2

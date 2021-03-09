@@ -3,12 +3,12 @@ import css from './css.js';
 import { Config, ThrottleSetting } from './configs.js';
 import { Metric } from './metrics.js';
 
-export function manageDirs(path: string, rootDir: string) {
-	fs.rmdirSync(`${rootDir}${path}`, { recursive: true });
-	fs.mkdirSync(`${rootDir}${path}`, { recursive: true });
+export function manageDirs(path: string, traceDir: string) {
+	fs.rmdirSync(`${traceDir}${path}`, { recursive: true });
+	fs.mkdirSync(`${traceDir}${path}`, { recursive: true });
 }
 
-export function createHTML(config: Config) {
+export function createHTML(config: Config, rootDir: string) {
 	const html = `<html>
 	<head>
 		<title>${config.framework}</title>
@@ -23,13 +23,13 @@ export function createHTML(config: Config) {
 	</body>
 </html>
 `;
-	fs.writeFile('../index.html', html, function (err) {
+	fs.writeFile(`${rootDir}index.html`, html, function (err) {
 		if (err) return console.info(err);
 	});
 }
 
-export function writeMetaFile(chrome_version: string) {
-	const path = '../trace-results/meta.json';
+export function writeMetaFile(chrome_version: string, rootDir: string) {
+	const path = `${rootDir}trace-results/meta.json`;
 	const date = new Date();
 	try {
 		fs.writeFileSync(path, JSON.stringify({ date, chrome_version }));
@@ -42,7 +42,7 @@ export function makeDir(
 	throttleSetting: ThrottleSetting,
 	configDirName: string,
 	metricDirName: Metric['dirName'],
-	rootDir: string
+	traceDir: string
 ) {
-	fs.mkdirSync(`${rootDir}${throttleSetting}/${configDirName}/${metricDirName}`, { recursive: true });
+	fs.mkdirSync(`${traceDir}${throttleSetting}/${configDirName}/${metricDirName}`, { recursive: true });
 }
