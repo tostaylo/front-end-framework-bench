@@ -1,8 +1,8 @@
 export type Metric = {
 	fileName: string;
 	dirName: 'create-k' | 'create-ten-k' | 'clear-k' | 'clear-ten-k' | 'update-k' | 'update-ten-k';
-	selector: string;
-	selector2?: string;
+	selector: 'button#create1000' | 'button#create10000';
+	selector2?: 'button#clear' | 'button#update';
 };
 
 export const metrics: Metric[] = [

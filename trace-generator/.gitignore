@@ -3,3 +3,5 @@ metrics.js
 index.js
 configs.js
 css.js
+measureEvent.js
+manageFiles.js

@@ -1,5 +1,10 @@
 const WebC = `<main-component/>`;
 
+export enum ThrottleSetting {
+	NO_THROTTLE = 'no-throttle',
+	THROTTLE_4X = 'throttle-4x',
+}
+
 export type Config = { dirName: string; framework: string; src: string; webComponent?: typeof WebC | null };
 
 function createConfig(name: string, isWebComp: boolean): Config {
