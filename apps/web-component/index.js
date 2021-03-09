@@ -1,4 +1,4 @@
-import styles from '../../trace-generator/css.js';
+import styles from '../../trace-generator/scripts/css.js';
 
 class MainComponent extends HTMLElement {
 	constructor() {
