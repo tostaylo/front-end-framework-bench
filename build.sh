@@ -2,11 +2,10 @@
 
 set -ex
 
-npm run serve & 
-# server_pid=$!
+python3 -m http.server 80 & 
+server_pid=$!
 cd trace-generator
-npm run tsc && node index.js 
-# kill -KILL $server_pid
+npm run tsc && node index.js && kill -KILL $server_pid
 cd ../trace-processor 
 cargo run &&
 cd ../trace-results &&
