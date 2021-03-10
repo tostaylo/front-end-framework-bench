@@ -24,7 +24,7 @@ export function createHTML(config: Config, rootDir: string) {
 </html>
 `;
 	fs.writeFile(`${rootDir}index.html`, html, function (err) {
-		if (err) return console.info(err);
+		if (err) return console.error(err);
 	});
 }
 

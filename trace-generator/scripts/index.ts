@@ -16,7 +16,7 @@ let CHROME_VERSION = '';
 
 	for (const throttleSetting in ThrottleSetting) {
 		for (const config of configArr) {
-			console.warn(`starting new run for ${config.framework}`);
+			console.info(`starting new run for ${config.framework}`);
 			try {
 				await manageDirsHtmlTraces(
 					config,
@@ -25,7 +25,7 @@ let CHROME_VERSION = '';
 					ThrottleSetting[throttleSetting as keyof typeof ThrottleSetting]
 				);
 			} catch (err) {
-				console.warn(err, "We've encountered a problem and will exit the process");
+				console.error(err, "We've encountered a problem and will exit the process");
 				process.exit(1);
 			}
 		}

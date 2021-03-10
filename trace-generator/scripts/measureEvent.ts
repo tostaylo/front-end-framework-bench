@@ -153,7 +153,7 @@ const verifier = {
 			return [[...td].length, td[1998].textContent];
 		});
 		const result = td[0] === 2000 && td[1] === '1000';
-		console.log('Test for create-k', result);
+		console.info('Test for create-k', result);
 		return result;
 	},
 
@@ -164,7 +164,7 @@ const verifier = {
 		});
 
 		const result = td[0] === 20000 && td[1] === '10000';
-		console.log('Test for create-ten-k', result);
+		console.info('Test for create-ten-k', result);
 		return result;
 	},
 
@@ -176,7 +176,7 @@ const verifier = {
 		});
 
 		const result = td === 0;
-		console.log('Test for clear-k', result);
+		console.info('Test for clear-k', result);
 		return result;
 	},
 
@@ -186,7 +186,7 @@ const verifier = {
 			return td ? [...td].length : 0;
 		});
 		const result = td === 0;
-		console.log('Test for clear-ten-k', result);
+		console.info('Test for clear-ten-k', result);
 		return result;
 	},
 
@@ -196,7 +196,7 @@ const verifier = {
 			return [[...td].length, td[1999].textContent] as [number, string];
 		});
 		const result = td[0] === 2000 && td[1]?.toLowerCase() === 'we are updated';
-		console.log('Test for update-k', result);
+		console.info('Test for update-k', result);
 		return result;
 	},
 
@@ -206,7 +206,7 @@ const verifier = {
 			return [[...td].length, td[19999].textContent] as [number, string];
 		});
 		const result = td[0] === 20000 && td[1]?.toLowerCase() === 'we are updated';
-		console.log('Test for update-ten-k', result);
+		console.info('Test for update-ten-k', result);
 		return result;
 	},
 };
