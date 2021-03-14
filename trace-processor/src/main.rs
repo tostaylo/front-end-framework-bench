@@ -511,7 +511,7 @@ pub fn calc_event_trace_is_correct() {
     assert_eq!(calc.click_dur, 75.0);
     assert_eq!(calc.render_during_click, 0.0);
     assert_eq!(calc.render_after_click, 0.0);
-    // Maybe all I really need to do is calulate the time from start click start to last composite layer?
+    // Maybe all I really need to do is calculate the time from start click start to last composite layer?
     // Monitor other frameworks to try it out. Maybe other frameworks are doing alot of work in the browser if
     // There is multiple browser events layered on top of each other?
     // But finding the final composite layer might be a better method.

@@ -7,7 +7,7 @@ export enum ThrottleSetting {
 
 export type Config = { dirName: string; framework: string; src: string; webComponent?: typeof WebC | null };
 
-function createConfig(name: string, isWebComp: boolean): Config {
+function createConfig(name: string, isWebComp = false): Config {
 	return {
 		dirName: name,
 		framework: name,
@@ -17,11 +17,11 @@ function createConfig(name: string, isWebComp: boolean): Config {
 }
 
 export const configs: Config[] = [
-	createConfig('svelte', false),
+	createConfig('svelte'),
 	createConfig('web-component', true),
-	createConfig('rust-wasm', false),
-	createConfig('rust-fel', false),
-	createConfig('react', false),
-	createConfig('vue', false),
-	createConfig('javascript', false),
+	createConfig('rust-wasm'),
+	createConfig('rust-fel'),
+	createConfig('react'),
+	createConfig('vue'),
+	createConfig('javascript'),
 ];
