@@ -3,7 +3,7 @@
 Welcome to the project landing page for [Front-End Framework Bench](https://github.com/tostaylo/front-end-framework-bench), an automated testing suite focused on comparing performance of client-side frameworks. The project utilizes [Puppeteer](https://github.com/puppeteer/puppeteer) to simulate user input (mouse clicks for example) and [Google Chrome Developer Tools Performance Timeline](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference) traces to analyze and record timings of the interaction.
 
 ## Landing Page 
-https://front-end-framework-bench.torretaylor.me/
+[https://front-end-framework-bench.torretaylor.me/](https://tostaylo.github.io/front-end-framework-bench-viewer/)
 
 ## Methodology
 
